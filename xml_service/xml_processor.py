@@ -26,7 +26,10 @@ def read_lines(conn):
         buffer += chunk
         while b"\n" in buffer:
             line, buffer = buffer.split(b"\n", 1)
-            yield line.decode("utf-8", errors="replace")
+            text = line.decode("utf-8", errors="replace").rstrip("\r")
+            if text == "endacabadofinalizadoanimalesco":
+                return
+            yield text
 
 
 def apply_mapping(parent, mapping, row):
@@ -99,6 +102,7 @@ def handle_client(conn, addr):
         try:
             header_line = next(lines)
         except StopIteration:
+            print("Stoped iteration")
             return
 
         try:

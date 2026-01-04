@@ -26,6 +26,7 @@ def main():
                 "isbn_10": "isbn_10",
                 "isbn_13": "isbn_13",
             },
+            "description":"description"
         },
     }
 
