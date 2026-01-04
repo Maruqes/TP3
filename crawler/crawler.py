@@ -159,6 +159,8 @@ def extract_book_details(session, url):
     for field in FIELDNAMES:
         if field not in book or not book[field]:
             book[field] = details.get(field, "")
+    if not any(book.values()):
+        return None
     return book
 
 
@@ -257,7 +259,9 @@ def main():
     rows = []
     for index, link in enumerate(product_links, start=1):
         try:
-            rows.append(extract_book_details(session, link))
+            book = extract_book_details(session, link)
+            if book:
+                rows.append(book)
             time.sleep(SLEEP_SECONDS)
         except requests.RequestException as exc:
             print(f"[{index}/{len(product_links)}] Failed {link}: {exc}")
