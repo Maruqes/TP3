@@ -9,12 +9,12 @@ from urllib.parse import urljoin, urlparse
 import boto3
 import requests
 from bs4 import BeautifulSoup
-
+import pika
 
 DEFAULT_URL = "https://freecomputerbooks.com/compscArtificialIntelligenceBooks.html"
 OUTPUT_CSV = f"books_{datetime.date.today().isoformat()}.csv"
-LIMIT_BOOKS = 25
-SLEEP_SECONDS = 0.5
+LIMIT_BOOKS = 0
+SLEEP_SECONDS = 0
 
 
 FIELDNAMES = [
@@ -214,10 +214,6 @@ def upload_to_supabase_bucket(path, bucket, object_key):
 
 
 def notify_rabbitmq(filename):
-    try:
-        import pika
-    except ImportError:
-        raise RuntimeError("Missing dependency: pika. Install it with pip.")
 
     load_env_file()
     rabbit_url = get_env("RABBIT_URL")
