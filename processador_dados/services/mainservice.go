@@ -64,7 +64,7 @@ func Logica(filepath string) error {
 	filename := filepath
 
 	mapperv1 := `{"root":"books","item":"book","schema":{"title":"title","authors":"authors","publisher":"publisher","language":"language","ISBN":{"isbn_10":"isbn_10","isbn_13":"isbn_13"},"description":"description"}}`
-	webhook := "https://example.com/webhook"
+	webhook := "http://webhook-1611663047.eu-north-1.elb.amazonaws.com/webhook"
 
 	requestID := uuid.New()
 	headerMsg := fmt.Sprintf(`{"request_id":"%s","mapper":%s,"webhook_url":"%s","filename":"%s"}`+"\n", requestID, mapperv1, webhook, filename)
