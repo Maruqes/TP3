@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-const socketAddr = "127.0.0.1:9000"
+const socketAddr = "maruqes.com:36412"
 
 type Socket struct {
 	conn net.Conn
