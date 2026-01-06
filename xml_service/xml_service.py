@@ -1,6 +1,7 @@
 import socket
+import threading
 
-from xml_processor import handle_client
+from xml_processor import handle_client, start_worker
 
 
 HOST = "0.0.0.0"
@@ -8,6 +9,7 @@ PORT = 9000
 
 
 def main():
+    start_worker()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.bind((HOST, PORT))
         server.listen(1)
@@ -19,7 +21,10 @@ def main():
                     conn, addr = server.accept()
                 except socket.timeout:
                     continue
-                handle_client(conn, addr)
+                thread = threading.Thread(
+                    target=handle_client, args=(conn, addr), daemon=True
+                )
+                thread.start()
         except KeyboardInterrupt:
             print("closed")
 
