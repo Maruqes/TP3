@@ -10,5 +10,6 @@ FROM alpine:3.20
 RUN apk add --no-cache ca-certificates && addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY --from=builder /out/processador_dados /app/processador_dados
+EXPOSE 8080
 USER app
 ENTRYPOINT ["./processador_dados"]

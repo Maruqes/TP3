@@ -7,5 +7,10 @@ import (
 
 func main() {
 	services.SetupService()
+	go func() {
+		if err := services.StartWebhookServer(); err != nil {
+			panic(err)
+		}
+	}()
 	rabbitmq.ConsumirCoelho()
 }

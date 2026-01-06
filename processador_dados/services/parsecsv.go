@@ -49,7 +49,7 @@ func (c *CsvLine) ToCSV() string {
 		sanitizeCSVField(c.Description)
 }
 
-func parseCsvLine(csvIO io.ReadCloser, callback func(line CsvLine)) error {
+func parseCsvLine(sok *Socket, csvIO io.ReadCloser, callback func(sok *Socket, line CsvLine)) error {
 	reader := csv.NewReader(csvIO)
 	first := false
 	for {
@@ -72,7 +72,7 @@ func parseCsvLine(csvIO io.ReadCloser, callback func(line CsvLine)) error {
 			ISBN_10:   record[4],
 			ISBN_13:   record[5],
 		}
-		callback(newLine)
+		callback(sok, newLine)
 	}
 	return nil
 }
