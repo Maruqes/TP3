@@ -7,6 +7,10 @@ import grpc
 import messages_pb2
 import messages_pb2_grpc
 from db_connection import connect, ensure_schema
+import socket
+import threading
+
+from xml_processor import handle_client, start_worker
 
 
 DEFAULT_HOST = "0.0.0.0"
@@ -196,6 +200,25 @@ def serve():
     print(f"BookService listening on {address} using PostgreSQL")
     server.start()
     server.wait_for_termination()
+def main():
+    start_worker()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.bind((HOST, PORT))
+        server.listen(1)
+        server.settimeout(1.0)
+        print(f"Active on {HOST}:{PORT}")
+        try:
+            while True:
+                try:
+                    conn, addr = server.accept()
+                except socket.timeout:
+                    continue
+                thread = threading.Thread(
+                    target=handle_client, args=(conn, addr), daemon=True
+                )
+                thread.start()
+        except KeyboardInterrupt:
+            print("closed")
 
 
 if __name__ == "__main__":
