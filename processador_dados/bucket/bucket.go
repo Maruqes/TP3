@@ -32,9 +32,8 @@ func (b *Balde) GetFileFromBalde(ctx context.Context, filepath string) (*s3.GetO
 func SetupBucket() (*Balde, error) {
 	ctx := context.Background()
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("erro ao carregar .env:", err)
+	if err := godotenv.Load(); err != nil {
+		log.Println("warning: .env not loaded; using environment variables")
 	}
 
 	accessKey := os.Getenv("ACCESS_KEY")
@@ -42,7 +41,7 @@ func SetupBucket() (*Balde, error) {
 	endpoint := os.Getenv("ENDPOINT")
 
 	if accessKey == "" || secretKey == "" || endpoint == "" {
-		log.Fatal("ACCESS_KEY, SECRET_KEY e ENDPOINT devem estar definidos no .env")
+		log.Fatal("ACCESS_KEY, SECRET_KEY, and ENDPOINT must be set")
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx,
