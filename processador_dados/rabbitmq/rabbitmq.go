@@ -91,10 +91,12 @@ func ConsumirCoelho() {
 
 			// Aqui processas a mensagem
 			log.Printf("msg: deliveryTag=%d body=%s", d.DeliveryTag, string(d.Body))
-			err := services.Logica(string(d.Body))
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+			go func() {
+				err := services.Logica(string(d.Body))
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+			}()
 			// Se correu bem:
 			if err := d.Ack(false); err != nil {
 				log.Printf("ack erro: %v", err)

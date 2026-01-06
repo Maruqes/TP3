@@ -19,7 +19,7 @@ func SetupService() {
 	b = ba
 }
 
-func getInfoAndFix(line CsvLine) {
+func getInfoAndFix(sok *Socket, line CsvLine) {
 	//escrever csv no disco
 
 	//ler linha de cada csv
@@ -37,7 +37,7 @@ func getInfoAndFix(line CsvLine) {
 
 	toSend := line.ToCSV()
 	toSend = toSend + "\n"
-	err = SendSocketMessage(toSend)
+	err = SendSocketMessage(sok, toSend)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -48,10 +48,11 @@ func getInfoAndFix(line CsvLine) {
 }
 
 func Logica(filepath string) error {
-	if err := setupSocket(); err != nil {
+	sok, err := setupSocket()
+	if err != nil {
 		return err
 	}
-	defer CloseSocket()
+	defer CloseSocket(sok)
 
 	ctx := context.Background()
 	obj, err := b.GetFileFromBalde(ctx, filepath)
@@ -67,24 +68,24 @@ func Logica(filepath string) error {
 
 	requestID := uuid.New()
 	headerMsg := fmt.Sprintf(`{"request_id":"%s","mapper":%s,"webhook_url":"%s","filename":"%s"}`+"\n", requestID, mapperv1, webhook, filename)
-	if err := SendSocketMessage(headerMsg); err != nil {
+	if err := SendSocketMessage(sok, headerMsg); err != nil {
 		return err
 	}
 
 	//mandar colunas
-	err = SendSocketMessage("title,authors,publisher,language,isbn_10,isbn_13,description\n")
+	err = SendSocketMessage(sok, "title,authors,publisher,language,isbn_10,isbn_13,description\n")
 	if err != nil {
 		return err
 	}
 
 	//madar uma linha de cada vez
-	err = parseCsvLine(obj.Body, getInfoAndFix)
+	err = parseCsvLine(sok, obj.Body, getInfoAndFix)
 	if err != nil {
 		return err
 	}
 
 	//dizer que acabou tudo
-	err = SendSocketMessage("endacabadofinalizadoanimalesco")
+	err = SendSocketMessage(sok, "endacabadofinalizadoanimalesco")
 	if err != nil {
 		return err
 	}
