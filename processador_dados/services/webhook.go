@@ -22,6 +22,7 @@ func StartWebhookServer() error {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/webhook", handleWebhook)
+	mux.HandleFunc("/health", handleHealth)
 
 	server := &http.Server{
 		Addr:              addr,
@@ -71,4 +72,13 @@ func normalizeStatus(raw json.RawMessage) (string, error) {
 		return fmt.Sprintf("%v", num), nil
 	}
 	return "", errors.New("unsupported status")
+}
+
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("ok"))
 }
