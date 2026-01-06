@@ -13,7 +13,7 @@ import pika
 
 DEFAULT_URL = "https://freecomputerbooks.com/compscArtificialIntelligenceBooks.html"
 OUTPUT_CSV = f"books_{datetime.date.today().isoformat()}.csv"
-LIMIT_BOOKS = 0
+LIMIT_BOOKS = 5
 SLEEP_SECONDS = 0
 
 

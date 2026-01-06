@@ -16,9 +16,8 @@ import (
 )
 
 func ConsumirCoelho() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("erro ao carregar .env:", err)
+	if err := godotenv.Load(); err != nil {
+		log.Println("warning: .env not loaded; using environment variables")
 	}
 	rabbitURL := os.Getenv("RABBITMQ")
 	queue := "tp3"
