@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package messages;
+
+message QueryMessage {
+  string query = 1;
+}
+
+message ResponseMessage {
+  string res = 1;
+}
+
+
+service MessageService {
+  rpc sendMessage(QueryMessage) returns (ResponseMessage);
+}
+
