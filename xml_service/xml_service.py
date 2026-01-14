@@ -49,7 +49,7 @@ BOOKS_BY_AUTHOR_QUERY = """
 SELECT
   unnest(
     xpath(
-      format('/books/book[contains(authors, ''%s'')]', %s),
+      '/books/book[contains(authors, "' || %s || '")]',
       s.doc
     )
   )::text AS book_xml
@@ -61,7 +61,7 @@ BOOKS_BY_TITLE_QUERY = """
 SELECT
   unnest(
     xpath(
-      format('/books/book[contains(title, ''%s'')]', %s),
+      '/books/book[contains(title, "' || %s || '")]',
       s.doc
     )
   )::text AS book_xml
