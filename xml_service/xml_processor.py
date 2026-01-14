@@ -1,15 +1,22 @@
 import csv
 import json
 import os
+import queue
 import socket
+import threading
+import urllib.request
 import xml.etree.ElementTree as ET
 import lxml.etree as etree
 
 from db_connection import connect, ensure_schema, insert_xml_document
 
 BUFFER_SIZE = 1024
-XSD_PATH = os.path.join(os.path.dirname(__file__), "books.xsd")
+BASE_DIR = os.path.dirname(__file__)
+XSD_PATH = os.path.join(BASE_DIR, "books.xsd")
 MAPPER_VERSION = "v1"
+PROCESSING_QUEUE = queue.Queue()
+_WORKER_STARTED = False
+_WORKER_LOCK = threading.Lock()
 
 
 def read_lines(conn):
@@ -94,6 +101,116 @@ def stream_csv_to_xml(lines, mapper, output_name):
     return row_count
 
 
+def ensure_unique_path(path):
+    if not os.path.exists(path):
+        return path
+    base, ext = os.path.splitext(path)
+    counter = 1
+    while True:
+        candidate = f"{base}_{counter}{ext}"
+        if not os.path.exists(candidate):
+            return candidate
+        counter += 1
+
+
+def build_csv_path(filename, request_id):
+    base_name = os.path.basename(filename or "output.csv")
+    stem, ext = os.path.splitext(base_name)
+    if not ext:
+        ext = ".csv"
+    if request_id:
+        safe_request_id = str(request_id).replace(os.path.sep, "_")
+        base_name = f"{stem}_{safe_request_id}{ext}"
+    path = os.path.join(BASE_DIR, base_name)
+    return ensure_unique_path(path)
+
+
+def receive_csv_file(lines, csv_path):
+    line_count = 0
+    with open(csv_path, "w", encoding="utf-8", newline="") as handle:
+        for line in lines:
+            handle.write(line)
+            handle.write("\n")
+            line_count += 1
+    return line_count
+
+
+def send_webhook(webhook_url, payload):
+    if not webhook_url:
+        return
+    data = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        webhook_url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            response.read()
+        print(f"Webhook sent to {webhook_url}")
+    except Exception as exc:
+        print(f"Failed to send webhook to {webhook_url}: {exc}")
+
+
+def process_job(job):
+    request_id = job.get("request_id")
+    mapper = job["mapper"]
+    csv_path = job["csv_path"]
+    output_name = job["output_name"]
+    webhook_url = job.get("webhook_url")
+
+    print(f"Processing request {request_id} from {csv_path}")
+    with open(csv_path, "r", encoding="utf-8", newline="") as handle:
+        row_count = stream_csv_to_xml(handle, mapper, output_name)
+    print(f"Processed {row_count} rows -> {output_name}")
+    print("XML generation complete")
+    is_valid, message = validate_xml(output_name)
+    if is_valid:
+        print(f"XML validated against {XSD_PATH}")
+
+        with connect() as conn:
+            ensure_schema(conn)
+            with open(output_name, "r", encoding="utf-8") as handle:
+                xml_text = handle.read()
+            row_id = insert_xml_document(conn, xml_text, MAPPER_VERSION)
+        print(f"Inserted XML into database with id {row_id}")
+        send_webhook(webhook_url, {"status": "ok"})
+    else:
+        print(f"XML validation failed: {message}")
+
+
+def queue_worker():
+    while True:
+        job = PROCESSING_QUEUE.get()
+        queue_size = PROCESSING_QUEUE.qsize()
+        print(
+            f"Dequeued request {job.get('request_id')}. Queue size: {queue_size}"
+        )
+        try:
+            process_job(job)
+        except Exception as exc:
+            print(f"Failed processing request {job.get('request_id')}: {exc}")
+        finally:
+            PROCESSING_QUEUE.task_done()
+
+
+def start_worker():
+    global _WORKER_STARTED
+    with _WORKER_LOCK:
+        if _WORKER_STARTED:
+            return
+        worker = threading.Thread(target=queue_worker, daemon=True)
+        worker.start()
+        _WORKER_STARTED = True
+
+
+def enqueue_job(job):
+    PROCESSING_QUEUE.put(job)
+    queue_size = PROCESSING_QUEUE.qsize()
+    print(f"Queued request {job.get('request_id')}. Queue size: {queue_size}")
+
+
 def handle_client(conn, addr):
     print(f"Connection from {addr}")
     with conn:
@@ -123,19 +240,17 @@ def handle_client(conn, addr):
             print("Mapper is missing or invalid")
             return
 
-        output_name = os.path.splitext(filename)[0] + ".xml"
-        row_count = stream_csv_to_xml(lines, mapper, output_name)
-        print(f"Processed {row_count} rows -> {output_name}")
-        print("XML generation complete")
-        is_valid, message = validate_xml(output_name)
-        if is_valid:
-            print(f"XML validated against {XSD_PATH}")
-            
-            with connect() as conn:
-                ensure_schema(conn)
-                with open(output_name, "r", encoding="utf-8") as handle:
-                    xml_text = handle.read()
-                row_id = insert_xml_document(conn, xml_text, MAPPER_VERSION)
-            print(f"Inserted XML into database with id {row_id}")
-        else:
-            print(f"XML validation failed: {message}")
+        csv_path = build_csv_path(filename, request_id)
+        output_name = os.path.splitext(csv_path)[0] + ".xml"
+        print(f"Receiving CSV file for {filename} -> {csv_path}")
+        receive_csv_file(lines, csv_path)
+        print("Received CSV file, queued for processing")
+        enqueue_job(
+            {
+                "request_id": request_id,
+                "mapper": mapper,
+                "csv_path": csv_path,
+                "output_name": output_name,
+                "webhook_url": webhook_url,
+            }
+        )

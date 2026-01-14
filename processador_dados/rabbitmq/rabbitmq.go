@@ -16,9 +16,8 @@ import (
 )
 
 func ConsumirCoelho() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("erro ao carregar .env:", err)
+	if err := godotenv.Load(); err != nil {
+		log.Println("warning: .env not loaded; using environment variables")
 	}
 	rabbitURL := os.Getenv("RABBITMQ")
 	queue := "tp3"
@@ -92,10 +91,12 @@ func ConsumirCoelho() {
 
 			// Aqui processas a mensagem
 			log.Printf("msg: deliveryTag=%d body=%s", d.DeliveryTag, string(d.Body))
-			err := services.Logica(string(d.Body))
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+			go func() {
+				err := services.Logica(string(d.Body))
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+			}()
 			// Se correu bem:
 			if err := d.Ack(false); err != nil {
 				log.Printf("ack erro: %v", err)
