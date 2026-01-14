@@ -1,5 +1,6 @@
 import os
 import re
+import xml.etree.ElementTree as ET
 from concurrent import futures
 
 import grpc
@@ -7,16 +8,11 @@ import grpc
 import messages_pb2
 import messages_pb2_grpc
 from db_connection import connect, ensure_schema
-import socket
-import threading
-
-from xml_processor import handle_client, start_worker
 
 
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 50051
-UPPER_ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-LOWER_ALPHA = "abcdefghijklmnopqrstuvwxyz"
+
 
 BOOKS_QUERY = """
 SELECT
@@ -44,17 +40,34 @@ WHERE s.id = (SELECT MAX(id) FROM scrapdocs);
 
 AUTHORS_QUERY = """
 SELECT
-  COALESCE((xpath('string(authors)', b.book_xml))[1]::text, '') AS authors
+  unnest(xpath('/books/book/authors/text()', s.doc))::text AS author
 FROM scrapdocs s
-CROSS JOIN LATERAL XMLTABLE(
-  '/books/book'
-  PASSING s.doc
-  COLUMNS
-    book_xml xml PATH '.'
-) AS b
 WHERE s.id = (SELECT MAX(id) FROM scrapdocs);
 """
 
+BOOKS_BY_AUTHOR_QUERY = """
+SELECT
+  unnest(
+    xpath(
+      format('/books/book[contains(authors, ''%s'')]', %s),
+      s.doc
+    )
+  )::text AS book_xml
+FROM scrapdocs s
+WHERE s.id = (SELECT MAX(id) FROM scrapdocs);
+"""
+
+BOOKS_BY_TITLE_QUERY = """
+SELECT
+  unnest(
+    xpath(
+      format('/books/book[contains(title, ''%s'')]', %s),
+      s.doc
+    )
+  )::text AS book_xml
+FROM scrapdocs s
+WHERE s.id = (SELECT MAX(id) FROM scrapdocs);
+"""
 
 def split_authors(text):
     if not text:
@@ -63,130 +76,108 @@ def split_authors(text):
     return [part.strip() for part in parts if part.strip()]
 
 
-def xpath_literal(value):
-    if "'" not in value:
-        return f"'{value}'"
-    if '"' not in value:
-        return f'"{value}"'
-    parts = value.split("'")
-    joined = ", \"'\", ".join(f"'{part}'" for part in parts)
-    return f"concat({joined})"
-
-
-def build_path_for_title(term):
-    if not term:
-        return "/books/book"
-    safe_term = xpath_literal(term.lower())
-    return (
-        "/books/book[contains("
-        f"translate(title, '{UPPER_ALPHA}', '{LOWER_ALPHA}'), {safe_term})]"
-    )
-
-
-def build_path_for_author(term):
-    if not term:
-        return "/books/book"
-    safe_term = xpath_literal(term.lower())
-    return (
-        "/books/book[contains("
-        f"translate(authors, '{UPPER_ALPHA}', '{LOWER_ALPHA}'), {safe_term})]"
-    )
-
-
-def query_books(path_expr):
-    with connect() as conn:
-        ensure_schema(conn)
-        with conn.cursor() as cur:
-            cur.execute(BOOKS_QUERY, (path_expr,))
-            rows = cur.fetchall()
-    books = []
-    for row in rows:
-        title, authors_raw, publisher, language, isbn_10, isbn_13, description = row
-        books.append(
-            {
-                "title": title or "",
-                "authors": split_authors(authors_raw),
-                "publisher": publisher or "",
-                "language": language or "",
-                "isbn_10": isbn_10 or "",
-                "isbn_13": isbn_13 or "",
-                "description": description or "",
-            }
-        )
-    return books
-
-
-def query_authors():
-    with connect() as conn:
-        ensure_schema(conn)
-        with conn.cursor() as cur:
-            cur.execute(AUTHORS_QUERY)
-            rows = cur.fetchall()
-    names = []
-    seen = set()
-    for (authors_raw,) in rows:
-        for name in split_authors(authors_raw):
-            key = name.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            names.append(name)
-    return names
-
-
-def books_to_proto(books):
-    return [
-        messages_pb2.Book(
-            title=book["title"],
-            authors=book["authors"],
-            publisher=book["publisher"],
-            language=book["language"],
-            isbn_10=book["isbn_10"],
-            isbn_13=book["isbn_13"],
-            description=book["description"],
-        )
-        for book in books
-    ]
-
-
-def load_books_or_abort(context, path_expr):
+def parse_book_xml(book_xml, context):
+    if book_xml is None:
+        return messages_pb2.Book()
     try:
-        return query_books(path_expr)
-    except Exception as exc:
-        context.abort(grpc.StatusCode.INTERNAL, str(exc))
-
-
-def load_authors_or_abort(context):
-    try:
-        return query_authors()
-    except Exception as exc:
-        context.abort(grpc.StatusCode.INTERNAL, str(exc))
-
+        root = ET.fromstring(str(book_xml))
+    except ET.ParseError as exc:
+        context.abort(grpc.StatusCode.INTERNAL, f"Invalid book XML: {exc}")
+    title = (root.findtext("title") or "").strip()
+    authors_text = (root.findtext("authors") or "").strip()
+    publisher = (root.findtext("publisher") or "").strip()
+    language = (root.findtext("language") or "").strip()
+    description = (root.findtext("description") or "").strip()
+    isbn_10 = (root.findtext("ISBN/isbn_10") or "").strip()
+    isbn_13 = (root.findtext("ISBN/isbn_13") or "").strip()
+    return messages_pb2.Book(
+        title=title,
+        authors=split_authors(authors_text),
+        publisher=publisher,
+        language=language,
+        isbn_10=isbn_10,
+        isbn_13=isbn_13,
+        description=description,
+    )
 
 class BookServiceServicer(messages_pb2_grpc.BookServiceServicer):
     def ListBooks(self, request, context):
-        books = load_books_or_abort(context, "/books/book")
-        return messages_pb2.BookList(books=books_to_proto(books))
+        try:
+            with connect() as conn:
+                ensure_schema(conn)
+                with conn.cursor() as cur:
+                    cur.execute(BOOKS_QUERY, ("/books/book",))
+                    rows = cur.fetchall()
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, str(exc))
+
+        books = []
+        for row in rows:
+            title, authors, publisher, language, isbn_10, isbn_13, description = row
+            books.append(
+                messages_pb2.Book(
+                    title=title or "",
+                    authors=[authors] if authors else [],
+                    publisher=publisher or "",
+                    language=language or "",
+                    isbn_10=isbn_10 or "",
+                    isbn_13=isbn_13 or "",
+                    description=description or "",
+                )
+            )
+        return messages_pb2.BookList(books=books)
 
     def SearchBooksByName(self, request, context):
-        term = request.query.strip().lower()
+        term = request.query.strip()
         if not term:
             return messages_pb2.BookList()
-        path_expr = build_path_for_title(term)
-        books = load_books_or_abort(context, path_expr)
-        return messages_pb2.BookList(books=books_to_proto(books))
+        try:
+            with connect() as conn:
+                ensure_schema(conn)
+                with conn.cursor() as cur:
+                    cur.execute(BOOKS_BY_TITLE_QUERY, (term,))
+                    rows = cur.fetchall()
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, str(exc))
+
+        books = [parse_book_xml(row[0], context) for row in rows]
+        return messages_pb2.BookList(books=books)
 
     def SearchBooksByAuthor(self, request, context):
-        term = request.query.strip().lower()
+        term = request.query.strip()
         if not term:
             return messages_pb2.BookList()
-        path_expr = build_path_for_author(term)
-        books = load_books_or_abort(context, path_expr)
-        return messages_pb2.BookList(books=books_to_proto(books))
+        try:
+            with connect() as conn:
+                ensure_schema(conn)
+                with conn.cursor() as cur:
+                    cur.execute(BOOKS_BY_AUTHOR_QUERY, (term,))
+                    rows = cur.fetchall()
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, str(exc))
+
+        books = [parse_book_xml(row[0], context) for row in rows]
+        return messages_pb2.BookList(books=books)
 
     def ListAuthors(self, request, context):
-        authors = load_authors_or_abort(context)
-        authors = [messages_pb2.Author(name=name) for name in authors]
+        try:
+            with connect() as conn:
+                ensure_schema(conn)
+                with conn.cursor() as cur:
+                    cur.execute(AUTHORS_QUERY)
+                    rows = cur.fetchall()
+        except Exception as exc:
+            context.abort(grpc.StatusCode.INTERNAL, str(exc))
+
+        authors = []
+        seen = set()
+        for (authors_raw,) in rows:
+            for name in split_authors(authors_raw):
+                key = name.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                authors.append(messages_pb2.Author(name=name))
         return messages_pb2.AuthorList(authors=authors)
 
 
@@ -200,25 +191,6 @@ def serve():
     print(f"BookService listening on {address} using PostgreSQL")
     server.start()
     server.wait_for_termination()
-def main():
-    start_worker()
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.bind((HOST, PORT))
-        server.listen(1)
-        server.settimeout(1.0)
-        print(f"Active on {HOST}:{PORT}")
-        try:
-            while True:
-                try:
-                    conn, addr = server.accept()
-                except socket.timeout:
-                    continue
-                thread = threading.Thread(
-                    target=handle_client, args=(conn, addr), daemon=True
-                )
-                thread.start()
-        except KeyboardInterrupt:
-            print("closed")
 
 
 if __name__ == "__main__":
