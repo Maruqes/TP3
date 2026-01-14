@@ -56,11 +56,15 @@ defmodule BiService.Router do
     end
   end
 
+
+  #TODO: create rest endpoint to get all authors
+
   forward("/graphql",
     to: Absinthe.Plug,
     init_opts: [schema: BiService.Logic]
   )
 
+  #test queries, remove for prod
   forward("/graphiql",
     to: Absinthe.Plug.GraphiQL,
     init_opts: [schema: BiService.Logic, interface: :simple]

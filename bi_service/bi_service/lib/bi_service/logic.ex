@@ -11,14 +11,27 @@ defmodule BiService.Logic do
     field(:description, :string)
   end
 
+  object :author do
+    field(:name, :string)
+  end
+
   query do
     field :books, list_of(:book) do
       resolve(&BiService.ApiGraphql.list_books/3)
     end
 
-    field :book, :book do
-      arg(:id, non_null(:id))
-      resolve(&BiService.ApiGraphql.list_book/3)
+    field :search_by_name, list_of(:book) do
+      arg(:name, non_null(:string))
+      resolve(&BiService.ApiGraphql.search_by_name/3)
+    end
+
+    field :search_by_author, list_of(:book) do
+      arg(:author, non_null(:string))
+      resolve(&BiService.ApiGraphql.search_by_author/3)
+    end
+
+    field :get_authors, list_of(:author) do
+      resolve(&BiService.ApiGraphql.get_authors/3)
     end
   end
 end

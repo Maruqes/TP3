@@ -5,22 +5,53 @@ defmodule BiService.ApiGraphql do
       IO.puts("books: " <> Jason.encode!(books))
       {:ok, Enum.map(books, &normalize_book/1)}
     else
-      {:ok, _not_list} -> {:error, "grpc response is not a JSON list"}
       {:error, %Jason.DecodeError{} = error} -> {:error, Exception.message(error)}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  def list_book(_parent, %{id: _id}, %{context: %{grpc_channel: _channel}}) do
-    {:ok,
-     %{
-        title: "titulo",
-       authors: "autor1",
-       publisher: "publisher1esss",
-       isbn_10: "ISBN_10",
-       isbn_13: "ISBN_13",
-       description: "description"
-     }}
+  def search_by_name(_parent, %{name: name}, %{context: %{grpc_channel: channel}}) do
+    # step 1
+    with {:ok, %Messages.ResponseMessage{} = result} <-
+           BiService.Grpc.get_books_by_name(channel, name),
+         # step 2
+         {:ok, books} <- Jason.decode(result.res) do
+      IO.puts("books: " <> Jason.encode!(books))
+      {:ok, Enum.map(books, &normalize_book/1)}
+    else
+      {:error, %Jason.DecodeError{} = error} -> {:error, Exception.message(error)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def search_by_author(_parent, %{author: author}, %{context: %{grpc_channel: channel}}) do
+    # step 1
+    with {:ok, %Messages.ResponseMessage{} = result} <-
+           BiService.Grpc.get_books_by_author(channel, author),
+         {:ok, books} <- Jason.decode(result.res) do
+      IO.puts("books: " <> Jason.encode!(books))
+      {:ok, Enum.map(books, &normalize_book/1)}
+    else
+      {:error, %Jason.DecodeError{} = error} -> {:error, Exception.message(error)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def get_authors(_parent, _, %{context: %{grpc_channel: channel}}) do
+    with {:ok, %Messages.ResponseMessage{} = result} <- BiService.Grpc.get_authors(channel),
+         {:ok, authors} <- Jason.decode(result.res) do
+      IO.puts("authors: " <> Jason.encode!(authors))
+      {:ok, Enum.map(authors, &normalize_author/1)}
+    else
+      {:error, %Jason.DecodeError{} = error} -> {:error, Exception.message(error)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp normalize_author(%{} = author) do
+    %{
+      name: Map.get(author, "name")
+    }
   end
 
   defp normalize_book(%{} = book) do
