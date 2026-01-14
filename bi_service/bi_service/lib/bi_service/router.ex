@@ -19,10 +19,10 @@ defmodule BiService.Router do
     |> send_resp(status, Jason.encode!(input))
   end
 
-  @spec teste(GRPC.Channel.t()) :: {:ok, Messages.ResponseMessage.t()} | {:error, any()}
+  @spec teste(GRPC.Channel.t()) :: {:ok, Messages.BookList.t()} | {:error, any()}
   def teste(channel) do
-    with request <- %Messages.QueryMessage{query: "mensagem"},
-         {:ok, response} <- Messages.MessageService.Stub.send_message(channel, request) do
+    with request <- %Messages.Empty{},
+         {:ok, response} <- Messages.BookService.Stub.list_books(channel, request) do
       {:ok, response}
     end
   end
@@ -32,7 +32,6 @@ defmodule BiService.Router do
          String.starts_with?(conn.request_path, "/graphiql") do
       channel_provider = conn.assigns.router_opts[:channel_provider] || BiService.Grpc
       channel = channel_provider.channel()
-
       Absinthe.Plug.put_options(conn, context: %{grpc_channel: channel})
     else
       conn
@@ -57,14 +56,12 @@ defmodule BiService.Router do
   end
 
 
-  #TODO: create rest endpoint to get all authors
-
   forward("/graphql",
     to: Absinthe.Plug,
     init_opts: [schema: BiService.Logic]
   )
 
-  #test queries, remove for prod
+  # test queries, remove for prod
   forward("/graphiql",
     to: Absinthe.Plug.GraphiQL,
     init_opts: [schema: BiService.Logic, interface: :simple]

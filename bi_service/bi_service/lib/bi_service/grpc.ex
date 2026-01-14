@@ -11,30 +11,30 @@ defmodule BiService.Grpc do
     GenServer.call(__MODULE__, :channel)
   end
 
-  @spec get_books(GRPC.Channel.t()) :: {:ok, Messages.ResponseMessage.t()} | {:error, any()}
+  @spec get_books(GRPC.Channel.t()) :: {:ok, Messages.BookList.t()} | {:error, any()}
   def get_books(channel) do
-    request = %Messages.QueryMessage{query: "livros"}
-    Messages.MessageService.Stub.send_message(channel, request)
+    request = %Messages.Empty{}
+    Messages.BookService.Stub.list_books(channel, request)
   end
 
   @spec get_books_by_name(GRPC.Channel.t(), String.t()) ::
-          {:ok, Messages.ResponseMessage.t()} | {:error, any()}
+          {:ok, Messages.BookList.t()} | {:error, any()}
   def get_books_by_name(channel, name) do
-    request = %Messages.QueryMessage{query: "name=" <> name}
-    Messages.MessageService.Stub.send_message(channel, request)
+    request = %Messages.SearchRequest{query: name}
+    Messages.BookService.Stub.search_books_by_name(channel, request)
   end
 
   @spec get_books_by_author(GRPC.Channel.t(), binary()) ::
-          {:ok, Messages.ResponseMessage.t()} | {:error, any()}
+          {:ok, Messages.BookList.t()} | {:error, any()}
   def get_books_by_author(channel, author) do
-    request = %Messages.QueryMessage{query: "author=" <> author}
-    Messages.MessageService.Stub.send_message(channel, request)
+    request = %Messages.SearchRequest{query: author}
+    Messages.BookService.Stub.search_books_by_author(channel, request)
   end
 
-  @spec get_authors(GRPC.Channel.t()) :: {:ok, Messages.ResponseMessage.t()} | {:error, any()}
+  @spec get_authors(GRPC.Channel.t()) :: {:ok, Messages.AuthorList.t()} | {:error, any()}
   def get_authors(channel) do
-    request = %Messages.QueryMessage{query: "getallauthors"}
-    Messages.MessageService.Stub.send_message(channel, request)
+    request = %Messages.Empty{}
+    Messages.BookService.Stub.list_authors(channel, request)
   end
 
   @impl true

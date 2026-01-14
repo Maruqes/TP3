@@ -5,7 +5,7 @@ import warnings
 
 import messages_pb2 as messages__pb2
 
-GRPC_GENERATED_VERSION = '1.76.0'
+GRPC_GENERATED_VERSION = '1.74.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -18,14 +18,14 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in messages_pb2_grpc.py depends on'
+        + f' but the generated code in messages_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
 
-class MessageServiceStub(object):
+class BookServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -34,43 +34,91 @@ class MessageServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.sendMessage = channel.unary_unary(
-                '/messages.MessageService/sendMessage',
-                request_serializer=messages__pb2.QueryMessage.SerializeToString,
-                response_deserializer=messages__pb2.ResponseMessage.FromString,
+        self.ListBooks = channel.unary_unary(
+                '/messages.BookService/ListBooks',
+                request_serializer=messages__pb2.Empty.SerializeToString,
+                response_deserializer=messages__pb2.BookList.FromString,
+                _registered_method=True)
+        self.SearchBooksByName = channel.unary_unary(
+                '/messages.BookService/SearchBooksByName',
+                request_serializer=messages__pb2.SearchRequest.SerializeToString,
+                response_deserializer=messages__pb2.BookList.FromString,
+                _registered_method=True)
+        self.SearchBooksByAuthor = channel.unary_unary(
+                '/messages.BookService/SearchBooksByAuthor',
+                request_serializer=messages__pb2.SearchRequest.SerializeToString,
+                response_deserializer=messages__pb2.BookList.FromString,
+                _registered_method=True)
+        self.ListAuthors = channel.unary_unary(
+                '/messages.BookService/ListAuthors',
+                request_serializer=messages__pb2.Empty.SerializeToString,
+                response_deserializer=messages__pb2.AuthorList.FromString,
                 _registered_method=True)
 
 
-class MessageServiceServicer(object):
+class BookServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def sendMessage(self, request, context):
+    def ListBooks(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SearchBooksByName(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SearchBooksByAuthor(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListAuthors(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_MessageServiceServicer_to_server(servicer, server):
+def add_BookServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'sendMessage': grpc.unary_unary_rpc_method_handler(
-                    servicer.sendMessage,
-                    request_deserializer=messages__pb2.QueryMessage.FromString,
-                    response_serializer=messages__pb2.ResponseMessage.SerializeToString,
+            'ListBooks': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListBooks,
+                    request_deserializer=messages__pb2.Empty.FromString,
+                    response_serializer=messages__pb2.BookList.SerializeToString,
+            ),
+            'SearchBooksByName': grpc.unary_unary_rpc_method_handler(
+                    servicer.SearchBooksByName,
+                    request_deserializer=messages__pb2.SearchRequest.FromString,
+                    response_serializer=messages__pb2.BookList.SerializeToString,
+            ),
+            'SearchBooksByAuthor': grpc.unary_unary_rpc_method_handler(
+                    servicer.SearchBooksByAuthor,
+                    request_deserializer=messages__pb2.SearchRequest.FromString,
+                    response_serializer=messages__pb2.BookList.SerializeToString,
+            ),
+            'ListAuthors': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListAuthors,
+                    request_deserializer=messages__pb2.Empty.FromString,
+                    response_serializer=messages__pb2.AuthorList.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'messages.MessageService', rpc_method_handlers)
+            'messages.BookService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('messages.MessageService', rpc_method_handlers)
+    server.add_registered_method_handlers('messages.BookService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class MessageService(object):
+class BookService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def sendMessage(request,
+    def ListBooks(request,
             target,
             options=(),
             channel_credentials=None,
@@ -83,9 +131,90 @@ class MessageService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/messages.MessageService/sendMessage',
-            messages__pb2.QueryMessage.SerializeToString,
-            messages__pb2.ResponseMessage.FromString,
+            '/messages.BookService/ListBooks',
+            messages__pb2.Empty.SerializeToString,
+            messages__pb2.BookList.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SearchBooksByName(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/messages.BookService/SearchBooksByName',
+            messages__pb2.SearchRequest.SerializeToString,
+            messages__pb2.BookList.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SearchBooksByAuthor(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/messages.BookService/SearchBooksByAuthor',
+            messages__pb2.SearchRequest.SerializeToString,
+            messages__pb2.BookList.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListAuthors(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/messages.BookService/ListAuthors',
+            messages__pb2.Empty.SerializeToString,
+            messages__pb2.AuthorList.FromString,
             options,
             channel_credentials,
             insecure,

@@ -24,17 +24,25 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emessages.proto\x12\x08messages\"\x1d\n\x0cQueryMessage\x12\r\n\x05query\x18\x01 \x01(\t\"\x1e\n\x0fResponseMessage\x12\x0b\n\x03res\x18\x01 \x01(\t2R\n\x0eMessageService\x12@\n\x0bsendMessage\x12\x16.messages.QueryMessage\x1a\x19.messages.ResponseMessageb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emessages.proto\x12\x08messages\"\x07\n\x05\x45mpty\"\x1e\n\rSearchRequest\x12\r\n\x05query\x18\x01 \x01(\t\"\x82\x01\n\x04\x42ook\x12\r\n\x05title\x18\x01 \x01(\t\x12\x0f\n\x07\x61uthors\x18\x02 \x03(\t\x12\x11\n\tpublisher\x18\x03 \x01(\t\x12\x10\n\x08language\x18\x04 \x01(\t\x12\x0f\n\x07isbn_10\x18\x05 \x01(\t\x12\x0f\n\x07isbn_13\x18\x06 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x07 \x01(\t\")\n\x08\x42ookList\x12\x1d\n\x05\x62ooks\x18\x01 \x03(\x0b\x32\x0e.messages.Book\"\x16\n\x06\x41uthor\x12\x0c\n\x04name\x18\x01 \x01(\t\"/\n\nAuthorList\x12!\n\x07\x61uthors\x18\x01 \x03(\x0b\x32\x10.messages.Author2\xfb\x01\n\x0b\x42ookService\x12\x30\n\tListBooks\x12\x0f.messages.Empty\x1a\x12.messages.BookList\x12@\n\x11SearchBooksByName\x12\x17.messages.SearchRequest\x1a\x12.messages.BookList\x12\x42\n\x13SearchBooksByAuthor\x12\x17.messages.SearchRequest\x1a\x12.messages.BookList\x12\x34\n\x0bListAuthors\x12\x0f.messages.Empty\x1a\x14.messages.AuthorListb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'messages_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_QUERYMESSAGE']._serialized_start=28
-  _globals['_QUERYMESSAGE']._serialized_end=57
-  _globals['_RESPONSEMESSAGE']._serialized_start=59
-  _globals['_RESPONSEMESSAGE']._serialized_end=89
-  _globals['_MESSAGESERVICE']._serialized_start=91
-  _globals['_MESSAGESERVICE']._serialized_end=173
+  _globals['_EMPTY']._serialized_start=28
+  _globals['_EMPTY']._serialized_end=35
+  _globals['_SEARCHREQUEST']._serialized_start=37
+  _globals['_SEARCHREQUEST']._serialized_end=67
+  _globals['_BOOK']._serialized_start=70
+  _globals['_BOOK']._serialized_end=200
+  _globals['_BOOKLIST']._serialized_start=202
+  _globals['_BOOKLIST']._serialized_end=243
+  _globals['_AUTHOR']._serialized_start=245
+  _globals['_AUTHOR']._serialized_end=267
+  _globals['_AUTHORLIST']._serialized_start=269
+  _globals['_AUTHORLIST']._serialized_end=316
+  _globals['_BOOKSERVICE']._serialized_start=319
+  _globals['_BOOKSERVICE']._serialized_end=570
 # @@protoc_insertion_point(module_scope)

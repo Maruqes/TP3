@@ -2,16 +2,37 @@ syntax = "proto3";
 
 package messages;
 
-message QueryMessage {
+message Empty {}
+
+message SearchRequest {
   string query = 1;
 }
 
-message ResponseMessage {
-  string res = 1;
+message Book {
+  string title = 1;
+  repeated string authors = 2;
+  string publisher = 3;
+  string language = 4;
+  string isbn_10 = 5;
+  string isbn_13 = 6;
+  string description = 7;
 }
 
-
-service MessageService {
-  rpc sendMessage(QueryMessage) returns (ResponseMessage);
+message BookList {
+  repeated Book books = 1;
 }
 
+message Author {
+  string name = 1;
+}
+
+message AuthorList {
+  repeated Author authors = 1;
+}
+
+service BookService {
+  rpc ListBooks(Empty) returns (BookList);
+  rpc SearchBooksByName(SearchRequest) returns (BookList);
+  rpc SearchBooksByAuthor(SearchRequest) returns (BookList);
+  rpc ListAuthors(Empty) returns (AuthorList);
+}
