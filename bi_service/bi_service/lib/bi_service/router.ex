@@ -2,6 +2,12 @@ defmodule BiService.Router do
   use Plug.Router, copy_opts_to_assign: :router_opts
   import Plug.Conn
 
+  plug(CorsPlug,
+    origin: "*",
+    methods: ["GET", "POST", "OPTIONS"],
+    headers: ["content-type", "authorization"]
+  )
+
   plug(Plug.Parsers,
     parsers: [:json],
     pass: ["application/json"],
@@ -66,6 +72,10 @@ defmodule BiService.Router do
     to: Absinthe.Plug.GraphiQL,
     init_opts: [schema: BiService.Logic, interface: :simple]
   )
+
+  options _ do
+    send_resp(conn, 204, "")
+  end
 
   match _ do
     send_resp(conn, 404, "not found")
