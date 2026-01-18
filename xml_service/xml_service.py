@@ -16,7 +16,7 @@ from xml_processor import handle_client, start_worker
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 50051
 DEFAULT_SOCKET_HOST = "0.0.0.0"
-DEFAULT_SOCKET_PORT = 36412
+DEFAULT_SOCKET_PORT = 9000  
 
 
 BOOKS_QUERY = """
