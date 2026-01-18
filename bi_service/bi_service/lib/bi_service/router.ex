@@ -4,6 +4,7 @@ defmodule BiService.Router do
 
   plug(CORSPlug,
     origin: "*",
+    credentials: false,
     methods: ["GET", "POST", "OPTIONS"],
     headers: ["content-type", "authorization"]
   )
