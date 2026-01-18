@@ -27,7 +27,9 @@ SELECT
   b.language,
   COALESCE((xpath('string(ISBN/isbn_10)', b.book_xml))[1]::text, '') AS isbn_10,
   COALESCE((xpath('string(ISBN/isbn_13)', b.book_xml))[1]::text, '') AS isbn_13,
-  b.description
+  b.description,
+  b.small_thumbnail,
+  b.thumbnail
 FROM scrapdocs s
 CROSS JOIN LATERAL XMLTABLE(
   %s
@@ -38,7 +40,9 @@ CROSS JOIN LATERAL XMLTABLE(
     authors text PATH 'authors',
     publisher text PATH 'publisher',
     language text PATH 'language',
-    description text PATH 'description'
+    description text PATH 'description',
+    small_thumbnail text PATH 'thumbnails/smallThumbnail',
+    thumbnail text PATH 'thumbnails/thumbnail'
 ) AS b
 WHERE s.id = (SELECT MAX(id) FROM scrapdocs);
 """
@@ -95,6 +99,8 @@ def parse_book_xml(book_xml, context):
     description = (root.findtext("description") or "").strip()
     isbn_10 = (root.findtext("ISBN/isbn_10") or "").strip()
     isbn_13 = (root.findtext("ISBN/isbn_13") or "").strip()
+    small_thumbnail = (root.findtext("thumbnails/smallThumbnail") or "").strip()
+    thumbnail = (root.findtext("thumbnails/thumbnail") or "").strip()
     return messages_pb2.Book(
         title=title,
         authors=split_authors(authors_text),
@@ -103,6 +109,8 @@ def parse_book_xml(book_xml, context):
         isbn_10=isbn_10,
         isbn_13=isbn_13,
         description=description,
+        small_thumbnail=small_thumbnail,
+        thumbnail=thumbnail,
     )
 
 class BookServiceServicer(messages_pb2_grpc.BookServiceServicer):
@@ -118,7 +126,17 @@ class BookServiceServicer(messages_pb2_grpc.BookServiceServicer):
 
         books = []
         for row in rows:
-            title, authors, publisher, language, isbn_10, isbn_13, description = row
+            (
+                title,
+                authors,
+                publisher,
+                language,
+                isbn_10,
+                isbn_13,
+                description,
+                small_thumbnail,
+                thumbnail,
+            ) = row
             books.append(
                 messages_pb2.Book(
                     title=title or "",
@@ -128,6 +146,8 @@ class BookServiceServicer(messages_pb2_grpc.BookServiceServicer):
                     isbn_10=isbn_10 or "",
                     isbn_13=isbn_13 or "",
                     description=description or "",
+                    small_thumbnail=small_thumbnail or "",
+                    thumbnail=thumbnail or "",
                 )
             )
         return messages_pb2.BookList(books=books)

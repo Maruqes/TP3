@@ -58,7 +58,9 @@ defmodule BiService.ApiGraphql do
       publisher: book.publisher,
       isbn_10: book.isbn_10,
       isbn_13: book.isbn_13,
-      description: book.description
+      description: book.description,
+      small_thumbnail: book.small_thumbnail,
+      thumbnail: book.thumbnail
     }
   end
 
@@ -69,7 +71,9 @@ defmodule BiService.ApiGraphql do
       publisher: Map.get(book, "publisher"),
       isbn_10: Map.get(book, "isbn_10"),
       isbn_13: Map.get(book, "isbn_13"),
-      description: Map.get(book, "description")
+      description: Map.get(book, "description"),
+      small_thumbnail: Map.get(book, "small_thumbnail"),
+      thumbnail: Map.get(book, "thumbnail")
     }
   end
 

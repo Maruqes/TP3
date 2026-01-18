@@ -8,5 +8,7 @@ defmodule BiService.Book do
     field(:ISBN_10, :string)
     field(:ISBN_13, :string)
     field(:description, :string)
+    field(:small_thumbnail, :string)
+    field(:thumbnail, :string)
   end
 end

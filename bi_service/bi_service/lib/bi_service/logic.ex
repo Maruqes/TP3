@@ -9,6 +9,8 @@ defmodule BiService.Logic do
     field(:isbn_10, :string)
     field(:isbn_13, :string)
     field(:description, :string)
+    field(:small_thumbnail, :string)
+    field(:thumbnail, :string)
   end
 
   object :author do

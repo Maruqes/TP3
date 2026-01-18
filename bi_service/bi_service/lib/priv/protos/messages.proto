@@ -16,6 +16,8 @@ message Book {
   string isbn_10 = 5;
   string isbn_13 = 6;
   string description = 7;
+  string small_thumbnail = 8;
+  string thumbnail = 9;
 }
 
 message BookList {

@@ -27,6 +27,8 @@ defmodule Messages.Book do
   field :isbn_10, 5, type: :string, json_name: "isbn10"
   field :isbn_13, 6, type: :string, json_name: "isbn13"
   field :description, 7, type: :string
+  field :small_thumbnail, 8, type: :string, json_name: "smallThumbnail"
+  field :thumbnail, 9, type: :string
 end
 
 defmodule Messages.BookList do
