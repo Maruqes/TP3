@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// 🚀 EPIC GRAPHQL CLIENT - POWERED BY ELIXIR & ABSINTHE
+// EPIC GRAPHQL CLIENT - POWERED BY ELIXIR & ABSINTHE
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ⚡ CONFIGURAÇÃO ÉPICA DA URL BASE - USADA EM TODAS AS REQUESTS! ⚡
+// BASE URL CONFIG - USED IN ALL REQUESTS
 const GRAPHQL_CONFIG = {
 	BASE_URL: 'https://elixir-epico.maruqes.com/graphql',
 	TIMEOUT: 30000,
@@ -13,7 +13,7 @@ const GRAPHQL_CONFIG = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 🎯 CLASSE ÉPICA DO CLIENTE GRAPHQL
+// GRAPHQL CLIENT CLASS
 // ═══════════════════════════════════════════════════════════════════════════
 
 class EpicGraphQLClient {
@@ -21,20 +21,20 @@ class EpicGraphQLClient {
 		this.baseUrl = config.BASE_URL;
 		this.timeout = config.TIMEOUT;
 		this.headers = config.HEADERS;
-		console.log(`🚀 Epic GraphQL Client initialized at: ${this.baseUrl}`);
+		console.log(`GraphQL client initialized at: ${this.baseUrl}`);
 	}
 
 	/**
-	 * 🎯 Método mestre para fazer queries GraphQL épicas
+	 * Main method to run GraphQL queries
 	 */
 	async query(query, variables = {}) {
 		const controller = new AbortController();
 		const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
 		try {
-			console.log(`📡 Sending GraphQL Query to: ${this.baseUrl}`);
-			console.log('📝 Query:', query);
-			console.log('🔧 Variables:', variables);
+			console.log(`Sending GraphQL query to: ${this.baseUrl}`);
+			console.log('Query:', query);
+			console.log('Variables:', variables);
 
 			const response = await fetch(this.baseUrl, {
 				method: 'POST',
@@ -52,25 +52,25 @@ class EpicGraphQLClient {
 			const result = await response.json();
 
 			if (result.errors) {
-				console.error('❌ GraphQL Errors:', result.errors);
+				console.error('GraphQL errors:', result.errors);
 				throw new Error(result.errors.map(e => e.message).join(', '));
 			}
 
-			console.log('✅ Query Success! Data received:', result.data);
+			console.log('Query success. Data received:', result.data);
 			return result.data;
 		} catch (error) {
 			clearTimeout(timeoutId);
-			console.error('💥 Query Failed:', error);
+			console.error('Query failed:', error);
 			throw error;
 		}
 	}
 
 	// ═══════════════════════════════════════════════════════════════════════
-	// 📚 QUERIES ÉPICAS PARA LIVROS
+	// BOOK QUERIES
 	// ═══════════════════════════════════════════════════════════════════════
 
 	/**
-	 * 📚 Busca TODOS os livros (poder total!)
+	 * Fetch all books
 	 */
 	async getAllBooks() {
 		const query = `
@@ -92,7 +92,7 @@ class EpicGraphQLClient {
 	}
 
 	/**
-	 * 🔍 Busca livros por nome (filtro épico!)
+	 * Search books by name
 	 */
 	async searchBooksByName(name) {
 		const query = `
@@ -114,7 +114,7 @@ class EpicGraphQLClient {
 	}
 
 	/**
-	 * 👤 Busca livros por autor (filtro poderoso!)
+	 * Search books by author
 	 */
 	async searchBooksByAuthor(author) {
 		const query = `
@@ -136,7 +136,7 @@ class EpicGraphQLClient {
 	}
 
 	/**
-	 * 📖 Busca todos os autores (lista completa!)
+	 * Fetch all authors
 	 */
 	async getAllAuthors() {
 		const query = `
@@ -151,7 +151,7 @@ class EpicGraphQLClient {
 	}
 
 	/**
-	 * 🎯 Query combinada épica - múltiplos dados em uma request!
+	 * Combined query for multiple datasets
 	 */
 	async getCombinedData() {
 		const query = `
@@ -176,13 +176,13 @@ class EpicGraphQLClient {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 🌟 INICIALIZAÇÃO DO CLIENTE ÉPICO
+// CLIENT INITIALIZATION
 // ═══════════════════════════════════════════════════════════════════════════
 
 const graphqlClient = new EpicGraphQLClient(GRAPHQL_CONFIG);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 📊 GERENCIADORES DE GRÁFICOS ÉPICOS
+// CHART MANAGERS
 // ═══════════════════════════════════════════════════════════════════════════
 
 let charts = {
@@ -192,8 +192,14 @@ let charts = {
 	stats: null
 };
 
+let currentBooks = [];
+let currentAuthors = [];
+let selectedAuthors = new Set();
+let authorSearchToken = 0;
+const FALLBACK_THUMBNAIL_BASE = 'https://picsum.photos/seed';
+
 /**
- * 🎨 Cria gráfico de publishers épico
+ * Create publishers chart
  */
 function createPublishersChart(books) {
 	const publisherCounts = {};
@@ -240,15 +246,17 @@ function createPublishersChart(books) {
 }
 
 /**
- * 👥 Cria gráfico de autores épico
+ * Create authors chart
  */
 function createAuthorsChart(books) {
 	const authorCounts = {};
 	books.forEach(book => {
 		if (book.authors) {
-			const authors = book.authors.split(',').map(a => a.trim());
+			const authors = Array.isArray(book.authors)
+				? book.authors.map(author => String(author).trim())
+				: book.authors.split(',').map(a => a.trim());
 			authors.forEach(author => {
-				authorCounts[author] = (authorCounts[author] || 0) + 1;
+				if (author) authorCounts[author] = (authorCounts[author] || 0) + 1;
 			});
 		}
 	});
@@ -300,15 +308,14 @@ function createAuthorsChart(books) {
 }
 
 /**
- * 📅 Cria gráfico de anos (extrai do ISBN)
+ * Create year chart (extracted from content)
  */
 function createYearChart(books) {
-	// Simula extração de anos baseado em padrões de ISBN
 	const yearCounts = {};
 	books.forEach(book => {
-		// Estimativa baseada em dados (você pode melhorar com dados reais)
-		const randomYear = 2010 + Math.floor(Math.random() * 16);
-		yearCounts[randomYear] = (yearCounts[randomYear] || 0) + 1;
+		const year = extractYear(book);
+		if (!year) return;
+		yearCounts[year] = (yearCounts[year] || 0) + 1;
 	});
 
 	const sortedYears = Object.entries(yearCounts)
@@ -316,6 +323,10 @@ function createYearChart(books) {
 
 	const ctx = document.getElementById('yearChart');
 	if (charts.years) charts.years.destroy();
+	if (sortedYears.length === 0) {
+		charts.years = null;
+		return;
+	}
 
 	charts.years = new Chart(ctx, {
 		type: 'line',
@@ -360,14 +371,14 @@ function createYearChart(books) {
 }
 
 /**
- * 📊 Cria gráfico de estatísticas em tempo real
+ * Create real-time stats chart
  */
 function createStatsChart(books) {
 	const stats = {
 		'Total Books': books.length,
 		'With ISBN-10': books.filter(b => b.isbn_10).length,
 		'With ISBN-13': books.filter(b => b.isbn_13).length,
-		'With Thumbnails': books.filter(b => b.thumbnail).length,
+		'With Thumbnails': books.filter(hasThumbnail).length,
 		'With Description': books.filter(b => b.description).length
 	};
 
@@ -414,7 +425,7 @@ function createStatsChart(books) {
 }
 
 /**
- * 🎨 Gera cores épicas para os gráficos
+ * Generate chart colors
  */
 function generateEpicColors(count) {
 	const colors = [];
@@ -425,12 +436,196 @@ function generateEpicColors(count) {
 	return colors;
 }
 
+function formatAuthors(authors) {
+	if (Array.isArray(authors)) return authors.join(', ');
+	if (typeof authors === 'string' && authors.trim()) return authors.trim();
+	return 'Unknown author';
+}
+
+function getFallbackThumbnail(book, index = 0) {
+	const seedSource = [book.isbn_13, book.isbn_10, book.title, `book-${index}`]
+		.filter(Boolean)
+		.join('-');
+	const seed = encodeURIComponent(seedSource || `book-${index}`);
+	return `${FALLBACK_THUMBNAIL_BASE}/${seed}/280/350`;
+}
+
+function getThumbnailUrl(book, fallbackUrl) {
+	const raw = [book.thumbnail, book.small_thumbnail].find(value => typeof value === 'string' && value.trim());
+	return raw ? raw.trim() : (fallbackUrl || getFallbackThumbnail(book));
+}
+
+function hasThumbnail(book) {
+	return [book.thumbnail, book.small_thumbnail].some(value => typeof value === 'string' && value.trim());
+}
+
+function extractYear(book) {
+	const fields = [book.description, book.title].filter(Boolean).join(' ');
+	const match = fields.match(/\b(19|20)\d{2}\b/);
+	return match ? Number(match[0]) : null;
+}
+
+function clearCharts() {
+	Object.values(charts).forEach(chart => {
+		if (chart) chart.destroy();
+	});
+	charts = { publishers: null, authors: null, years: null, stats: null };
+}
+
+function openModal(modal) {
+	modal.classList.remove('hidden');
+	document.body.classList.add('overflow-hidden');
+}
+
+function closeModal(modal) {
+	modal.classList.add('hidden');
+	if (document.querySelectorAll('.modal-overlay:not(.hidden)').length === 0) {
+		document.body.classList.remove('overflow-hidden');
+	}
+}
+
+function closeAllModals() {
+	document.querySelectorAll('.modal-overlay').forEach(modal => closeModal(modal));
+}
+
+function renderAuthorsModal(authors) {
+	const modal = document.getElementById('authorsModal');
+	const list = document.getElementById('authorsModalList');
+	const count = document.getElementById('authorsModalCount');
+	const names = authors.map(author => author.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
+	currentAuthors = authors;
+	selectedAuthors.clear();
+	updateAuthorsCountDisplay(names.length);
+	list.innerHTML = names.length
+		? names.map(name => `
+			<li>
+				<button type="button"
+					class="author-option w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-slate-100 transition hover:border-emerald-300/60 hover:bg-emerald-300/10 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
+					data-author="${encodeURIComponent(name)}">
+					${name}
+				</button>
+			</li>
+		`).join('')
+		: '<li class="text-slate-300">No authors found.</li>';
+
+	list.querySelectorAll('.author-option').forEach(button => {
+		button.addEventListener('click', () => {
+			const author = decodeURIComponent(button.dataset.author || '');
+			if (!author) return;
+			toggleAuthorSelection(author, button, names.length);
+		});
+	});
+
+	openModal(modal);
+}
+
+async function fetchAuthorsCount() {
+	if (currentAuthors.length > 0) return;
+	try {
+		currentAuthors = await graphqlClient.getAllAuthors();
+		if (currentBooks.length > 0) {
+			updateStats(currentBooks);
+		}
+	} catch (error) {
+		console.warn('Failed to fetch authors:', error);
+	}
+}
+
+function updateAuthorsCountDisplay(total) {
+	const count = document.getElementById('authorsModalCount');
+	const selected = selectedAuthors.size;
+	count.textContent = selected > 0
+		? `${total} authors • ${selected} selected`
+		: `${total} authors`;
+}
+
+function toggleAuthorSelection(author, button, total) {
+	if (selectedAuthors.has(author)) {
+		selectedAuthors.delete(author);
+		setAuthorSelected(button, false);
+	} else {
+		selectedAuthors.add(author);
+		setAuthorSelected(button, true);
+	}
+
+	anime({
+		targets: button,
+		scale: [1, 1.03, 1],
+		duration: 260,
+		easing: 'easeOutQuad'
+	});
+
+	updateAuthorsCountDisplay(total);
+	if (selectedAuthors.size > 0) {
+		searchBySelectedAuthors();
+	}
+}
+
+function setAuthorSelected(button, isSelected) {
+	button.classList.toggle('border-emerald-300/70', isSelected);
+	button.classList.toggle('bg-emerald-300/20', isSelected);
+	button.classList.toggle('text-emerald-50', isSelected);
+	button.classList.toggle('shadow-[0_0_0_1px_rgba(16,185,129,0.35)]', isSelected);
+}
+
+function getBookKey(book) {
+	return book.isbn_13 || book.isbn_10 || `${book.title || 'unknown'}-${book.publisher || 'unknown'}`;
+}
+
+function mergeBooks(books) {
+	const unique = new Map();
+	books.forEach(book => {
+		const key = getBookKey(book);
+		if (!unique.has(key)) unique.set(key, book);
+	});
+	return Array.from(unique.values());
+}
+
+async function searchBySelectedAuthors() {
+	const authors = Array.from(selectedAuthors);
+	if (authors.length === 0) return;
+
+	const token = ++authorSearchToken;
+	showLoading();
+
+	try {
+		const results = await Promise.allSettled(
+			authors.map(author => graphqlClient.searchBooksByAuthor(author))
+		);
+
+		if (token !== authorSearchToken) return;
+
+		const books = [];
+		const failedAuthors = [];
+
+		results.forEach((result, index) => {
+			if (result.status === 'fulfilled') {
+				books.push(...result.value);
+			} else {
+				failedAuthors.push(authors[index]);
+			}
+		});
+
+		const merged = mergeBooks(books);
+		displayBooks(merged);
+		updateCharts(merged);
+		updateStats(merged);
+		animateSuccess();
+
+		if (merged.length === 0 && failedAuthors.length > 0) {
+			showError(`Failed to load books for: ${failedAuthors.join(', ')}`);
+		}
+	} catch (error) {
+		showError('Failed to load selected authors: ' + error.message);
+	}
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
-// 🎯 FUNÇÕES DE INTERFACE ÉPICAS
+// UI FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * 📚 Carrega todos os livros
+ * Load all books
  */
 async function loadAllBooks() {
 	showLoading();
@@ -446,12 +641,12 @@ async function loadAllBooks() {
 }
 
 /**
- * 🔍 Busca por nome
+ * Search by name
  */
 async function searchByName() {
 	const name = document.getElementById('searchName').value.trim();
 	if (!name) {
-		alert('⚠️ Please enter a book title!');
+		alert('Please enter a book title.');
 		return;
 	}
 
@@ -468,12 +663,12 @@ async function searchByName() {
 }
 
 /**
- * 👤 Busca por autor
+ * Search by author
  */
 async function searchByAuthor() {
 	const author = document.getElementById('searchAuthor').value.trim();
 	if (!author) {
-		alert('⚠️ Please enter an author name!');
+		alert('Please enter an author name.');
 		return;
 	}
 
@@ -490,46 +685,57 @@ async function searchByAuthor() {
 }
 
 /**
- * 📖 Carrega todos os autores
+ * Load all authors
  */
 async function loadAuthors() {
-	showLoading();
 	try {
-		const authors = await graphqlClient.getAllAuthors();
-		const authorsList = authors.map(a => a.name).join(', ');
-		alert(`📚 Total Authors: ${authors.length}\n\n${authorsList}`);
-		hideLoading();
+		if (currentAuthors.length === 0) {
+			currentAuthors = await graphqlClient.getAllAuthors();
+		}
+		renderAuthorsModal(currentAuthors);
+		updateStats(currentBooks);
 	} catch (error) {
 		showError('Failed to load authors: ' + error.message);
 	}
 }
 
 /**
- * 🎨 Exibe os livros na grid
+ * Render books grid
  */
 function displayBooks(books) {
 	const container = document.getElementById('booksContainer');
+	currentBooks = books;
 
 	if (books.length === 0) {
-		container.innerHTML = '<div class="loading">📭 No books found!</div>';
+		container.innerHTML = '<div class="loading">No books found.</div>';
 		return;
 	}
 
-	container.innerHTML = books.map(book => `
-        <div class="book-card" onclick="showBookDetails(${JSON.stringify(book).replace(/"/g, '&quot;')})">
-            <img class="book-thumbnail" 
-                 src="${book.thumbnail || book.small_thumbnail || 'https://via.placeholder.com/280x350?text=No+Image'}" 
-                 alt="${book.title}"
-                 onerror="this.src='https://via.placeholder.com/280x350?text=No+Image'">
-            <div class="book-info">
-                <div class="book-title">${book.title || 'Unknown Title'}</div>
-                <div class="book-author">✍️ ${book.authors || 'Unknown Author'}</div>
-                <div class="book-publisher">🏢 ${book.publisher || 'Unknown Publisher'}</div>
+	container.innerHTML = books.map((book, index) => {
+		const fallback = getFallbackThumbnail(book, index);
+		return `
+        <div class="book-card group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_15px_40px_rgba(0,0,0,0.25)] transition hover:-translate-y-2 hover:border-emerald-300/50 hover:shadow-[0_20px_50px_rgba(16,185,129,0.25)]" data-index="${index}">
+            <img class="book-thumbnail h-72 w-full object-cover"
+                 src="${getThumbnailUrl(book, fallback)}"
+                 alt="${book.title || 'Untitled book'}"
+                 onerror="this.onerror=null;this.src='${fallback}'">
+            <div class="book-info p-4">
+                <div class="book-title font-display text-lg text-emerald-200">${book.title || 'Unknown title'}</div>
+                <div class="book-author text-slate-200/90">By ${formatAuthors(book.authors)}</div>
+                <div class="book-publisher text-sm text-slate-300/80">Publisher: ${book.publisher || 'Unknown publisher'}</div>
             </div>
         </div>
-    `).join('');
+    `;
+	}).join('');
 
-	// Anima a entrada dos cards
+	container.querySelectorAll('.book-card').forEach(card => {
+		card.addEventListener('click', () => {
+			const book = currentBooks[Number(card.dataset.index)];
+			if (book) showBookDetails(book);
+		});
+	});
+
+	// Animate card entrance
 	anime({
 		targets: '.book-card',
 		opacity: [0, 1],
@@ -541,71 +747,74 @@ function displayBooks(books) {
 }
 
 /**
- * 📖 Mostra detalhes do livro
+ * Show book details
  */
 function showBookDetails(book) {
-	const details = `
-📚 ${book.title}
-
-👤 Authors: ${book.authors || 'Unknown'}
-🏢 Publisher: ${book.publisher || 'Unknown'}
-📘 ISBN-10: ${book.isbn_10 || 'N/A'}
-📗 ISBN-13: ${book.isbn_13 || 'N/A'}
-
-📝 Description:
-${book.description || 'No description available'}
-    `;
-	alert(details);
+	const modal = document.getElementById('bookModal');
+	document.getElementById('bookModalTitle').textContent = book.title || 'Unknown title';
+	document.getElementById('bookModalAuthors').textContent = formatAuthors(book.authors);
+	document.getElementById('bookModalPublisher').textContent = book.publisher || 'Unknown publisher';
+	document.getElementById('bookModalIsbn10').textContent = book.isbn_10 || 'N/A';
+	document.getElementById('bookModalIsbn13').textContent = book.isbn_13 || 'N/A';
+	document.getElementById('bookModalDescription').textContent = book.description || 'No description available.';
+	const image = document.getElementById('bookModalImage');
+	const index = currentBooks.indexOf(book);
+	const fallback = getFallbackThumbnail(book, index >= 0 ? index : 0);
+	image.src = getThumbnailUrl(book, fallback);
+	image.onerror = () => {
+		image.onerror = null;
+		image.src = fallback;
+	};
+	openModal(modal);
 }
 
 /**
- * 📊 Atualiza todos os gráficos
+ * Update all charts
  */
 function updateCharts(books) {
-	if (books.length > 0) {
-		createPublishersChart(books);
-		createAuthorsChart(books);
-		createYearChart(books);
-		createStatsChart(books);
+	if (books.length === 0) {
+		clearCharts();
+		return;
 	}
+	createPublishersChart(books);
+	createAuthorsChart(books);
+	createYearChart(books);
+	createStatsChart(books);
 }
 
 /**
- * 📈 Atualiza as estatísticas
+ * Update stats
  */
 function updateStats(books) {
-	const uniqueAuthors = new Set();
 	const uniquePublishers = new Set();
 
 	books.forEach(book => {
 		if (book.publisher) uniquePublishers.add(book.publisher);
-		if (book.authors) {
-			book.authors.split(',').forEach(a => uniqueAuthors.add(a.trim()));
-		}
 	});
+	const authorsCount = currentAuthors.length;
 
 	const statsHTML = `
-        <div class="stat-card">
-            <div class="stat-number">${books.length}</div>
-            <div class="stat-label">Total Books</div>
+        <div class="stat-card rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-5 text-center">
+            <div class="stat-number font-display text-3xl text-emerald-200">${books.length}</div>
+            <div class="stat-label text-sm text-slate-200/80">Total books</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number">${uniqueAuthors.size}</div>
-            <div class="stat-label">Unique Authors</div>
+        <div class="stat-card rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-5 text-center">
+            <div class="stat-number font-display text-3xl text-emerald-200">${authorsCount}</div>
+            <div class="stat-label text-sm text-slate-200/80">Unique authors</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number">${uniquePublishers.size}</div>
-            <div class="stat-label">Publishers</div>
+        <div class="stat-card rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-5 text-center">
+            <div class="stat-number font-display text-3xl text-emerald-200">${uniquePublishers.size}</div>
+            <div class="stat-label text-sm text-slate-200/80">Publishers</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-number">${books.filter(b => b.thumbnail).length}</div>
-            <div class="stat-label">With Images</div>
+        <div class="stat-card rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-5 text-center">
+            <div class="stat-number font-display text-3xl text-emerald-200">${books.filter(hasThumbnail).length}</div>
+            <div class="stat-label text-sm text-slate-200/80">With image</div>
         </div>
     `;
 
 	document.getElementById('statsBar').innerHTML = statsHTML;
 
-	// Anima os números
+	// Animate the numbers
 	anime({
 		targets: '.stat-number',
 		innerHTML: [0, (el) => el.textContent],
@@ -616,39 +825,39 @@ function updateStats(books) {
 }
 
 /**
- * ⏳ Mostra loading
+ * Show loading
  */
 function showLoading() {
 	document.getElementById('booksContainer').innerHTML = `
         <div class="loading">
             <div class="spinner"></div>
-            <div>⚡ Loading epic data from GraphQL...</div>
+            <div>Loading data from GraphQL...</div>
         </div>
     `;
 }
 
 /**
- * ✅ Esconde loading
+ * Hide loading
  */
 function hideLoading() {
-	// Implementado via displayBooks
+	// Handled by displayBooks
 }
 
 /**
- * ❌ Mostra erro
+ * Show error
  */
 function showError(message) {
 	document.getElementById('booksContainer').innerHTML = `
         <div class="error-message">
-            <h3>❌ Error</h3>
+            <h3>Error</h3>
             <p>${message}</p>
-            <p>Make sure the Elixir GraphQL server is running at: ${GRAPHQL_CONFIG.BASE_URL}</p>
+            <p>Make sure the GraphQL server is running at: ${GRAPHQL_CONFIG.BASE_URL}</p>
         </div>
     `;
 }
 
 /**
- * ✨ Animação de sucesso
+ * Success animation
  */
 function animateSuccess() {
 	anime({
@@ -662,11 +871,11 @@ function animateSuccess() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 🎆 INICIALIZAÇÃO DE EFEITOS ÉPICOS
+// EFFECT INITIALIZATION
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * 🌟 Inicializa particles.js
+ * Initialize particles.js
  */
 function initParticles() {
 	particlesJS('particles-js', {
@@ -706,18 +915,19 @@ function initParticles() {
 }
 
 /**
- * 🚀 Inicialização quando a página carrega
+ * Initialize when the page loads
  */
 window.addEventListener('DOMContentLoaded', () => {
-	console.log('🚀 Epic Book Analytics Starting...');
-	console.log('🔧 GraphQL Endpoint:', GRAPHQL_CONFIG.BASE_URL);
+	console.log('Book analytics starting...');
+	console.log('GraphQL endpoint:', GRAPHQL_CONFIG.BASE_URL);
 
 	initParticles();
 
-	// Carrega dados iniciais
+	// Load initial data
 	loadAllBooks();
+	fetchAuthorsCount();
 
-	// Adiciona event listeners para Enter nos inputs
+	// Add event listeners for Enter on inputs
 	document.getElementById('searchName').addEventListener('keypress', (e) => {
 		if (e.key === 'Enter') searchByName();
 	});
@@ -726,9 +936,23 @@ window.addEventListener('DOMContentLoaded', () => {
 		if (e.key === 'Enter') searchByAuthor();
 	});
 
-	console.log('✅ Epic Book Analytics Ready!');
+	document.querySelectorAll('[data-modal-close]').forEach(button => {
+		button.addEventListener('click', () => closeAllModals());
+	});
+
+	document.querySelectorAll('.modal-overlay').forEach(modal => {
+		modal.addEventListener('click', (event) => {
+			if (event.target === modal) closeModal(modal);
+		});
+	});
+
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape') closeAllModals();
+	});
+
+	console.log('Book analytics ready.');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 🎉 FIM DO CÓDIGO ÉPICO!
+// END OF FILE
 // ═══════════════════════════════════════════════════════════════════════════
