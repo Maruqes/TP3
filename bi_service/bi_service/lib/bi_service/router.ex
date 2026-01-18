@@ -2,7 +2,7 @@ defmodule BiService.Router do
   use Plug.Router, copy_opts_to_assign: :router_opts
   import Plug.Conn
 
-  plug(CorsPlug,
+  plug(CORSPlug,
     origin: "*",
     methods: ["GET", "POST", "OPTIONS"],
     headers: ["content-type", "authorization"]
