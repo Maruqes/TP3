@@ -13,7 +13,7 @@ from db_connection import connect, ensure_schema, insert_xml_document
 BUFFER_SIZE = 1024
 BASE_DIR = os.path.dirname(__file__)
 XSD_PATH = os.path.join(BASE_DIR, "books.xsd")
-MAPPER_VERSION = "v1"
+MAPPER_VERSION = "v2"
 PROCESSING_QUEUE = queue.Queue()
 _WORKER_STARTED = False
 _WORKER_LOCK = threading.Lock()
@@ -168,16 +168,27 @@ def process_job(job):
     is_valid, message = validate_xml(output_name)
     if is_valid:
         print(f"XML validated against {XSD_PATH}")
+        try:
+            with connect() as conn:
+                ensure_schema(conn)
+                with open(output_name, "r", encoding="utf-8") as handle:
+                    xml_text = handle.read()
+                row_id = insert_xml_document(conn, xml_text, MAPPER_VERSION)
+        except Exception as exc:
+            print(f"Database insertion failed: {exc}")
+            send_webhook(
+                webhook_url,
+                {"status": "ERRO_PERSISTENCIA", "request_id": request_id, "row_id": None},
+            )
+            return
 
-        with connect() as conn:
-            ensure_schema(conn)
-            with open(output_name, "r", encoding="utf-8") as handle:
-                xml_text = handle.read()
-            row_id = insert_xml_document(conn, xml_text, MAPPER_VERSION)
         print(f"Inserted XML into database with id {row_id}")
-        send_webhook(webhook_url, {"status": "ok"})
+        send_webhook(webhook_url, {"status": "OK", "request_id": request_id, "row_id": row_id})
     else:
         print(f"XML validation failed: {message}")
+        send_webhook(webhook_url, {"status": "ERRO_VALIDACAO", "request_id": request_id, "row_id": None})
+
+
 
 
 def queue_worker():

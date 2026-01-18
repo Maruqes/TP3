@@ -13,6 +13,8 @@ type CsvLine struct {
 	ISBN_10     string
 	ISBN_13     string
 	Description string
+	smallThumbnail string
+	thumbnail      string
 }
 
 func (c *CsvLine) Print() {
@@ -22,7 +24,9 @@ func (c *CsvLine) Print() {
 		"\nLanguage: " + c.lang +
 		"\nISBN-10: " + c.ISBN_10 +
 		"\nISBN-13: " + c.ISBN_13 +
-		"\nDescription: " + c.Description
+		"\nDescription: " + c.Description +
+		"\nSmall Thumbnail: " + c.smallThumbnail +
+		"\nThumbnail: " + c.thumbnail + "\n"
 	println(out)
 }
 
@@ -46,7 +50,9 @@ func (c *CsvLine) ToCSV() string {
 		sanitizeCSVField(c.lang) + "," +
 		sanitizeCSVField(c.ISBN_10) + "," +
 		sanitizeCSVField(c.ISBN_13) + "," +
-		sanitizeCSVField(c.Description)
+		sanitizeCSVField(c.Description) + "," +
+		sanitizeCSVField(c.smallThumbnail) + "," +
+		sanitizeCSVField(c.thumbnail)
 }
 
 func parseCsvLine(sok *Socket, csvIO io.ReadCloser, callback func(sok *Socket, line CsvLine)) error {
