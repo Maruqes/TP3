@@ -1,0 +1,87 @@
+
+global{
+}
+
+
+include("liblang/min.lang")
+include("liblang/mem.lang")
+include("liblang/strings.lang")
+include("liblang/threads.lang")
+include("liblang/net.lang")
+include("liblang/file.lang")
+
+
+
+
+func main() {
+    dq fileSize;
+    dq BODY = readFileToMmap("index.html", &fileSize);
+
+    if BODY == 0 {
+        print("Failed to read file\n");
+        return;
+    }
+
+    dq s = sys_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (s < 0) {
+        print("socket() failed\n");
+        return;
+    }   
+
+    dd one = 1;
+    dq r = sys_setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, 4);
+
+    
+    dq addr<sockaddr_in> = sockaddr_in{};
+    addr.family = AF_INET;
+    addr.port = htons(8080);
+    addr.addr = htonl(0); // 0.0.0.0
+
+    r = sys_bind(s, addr, 16);
+    if r < 0 { print("bind failed\n"); return; }
+    r = sys_listen(s, 16);
+    if r < 0 { print("listen failed\n"); return; }
+
+    // Precompute body length
+    dq bodyLen = fileSize - 1;
+    print("Listening on port 8080...\n");
+
+    while 1 {
+        dd c = sys_accept(s, 0, 0);
+        if c < 0 {
+            print("accept() failed\n");
+            continue;
+        }
+
+        print("Client connected\n");
+        // Build full HTTP/1.1 response so browser renders HTML
+        dq body_len = bodyLen; // already computed
+        dq lenBuf = db<16>;
+        int_to_string(body_len, lenBuf, 16);
+        print(lenBuf);
+        print("\n");
+
+        dq status_len = getStringLen("HTTP/1.1 200 OK\r\n");
+        dq ct_len = getStringLen("Content-Type: text/html; charset=UTF-8\r\n");
+        dq cl_prefix_len = getStringLen("Content-Length: ");
+        dq conn_len = getStringLen("Connection: close\r\n");
+        dq lenDigits = getStringLen(lenBuf); // exclude terminating NUL
+
+        dq resp = mmap((bodyLen / 4096) + 1); // enough for headers + body
+        dq off = 0;
+        memcpy(resp + off, "HTTP/1.1 200 OK\r\n", status_len); off += status_len;
+        memcpy(resp + off, "Content-Type: text/html; charset=UTF-8\r\n", ct_len); off += ct_len;
+        memcpy(resp + off, "Content-Length: ", cl_prefix_len); off += cl_prefix_len;
+        memcpy(resp + off, lenBuf, lenDigits); off += lenDigits;
+        memcpy(resp + off, "\r\n", 2); off += 2; // end of Content-Length line
+        memcpy(resp + off, "Connection: close\r\n", conn_len); off += conn_len;
+        memcpy(resp + off, "\r\n", 2); off += 2; // blank line separating headers and body
+        memcpy(resp + off, BODY, body_len); off += body_len;
+
+        sys_write(c, resp, off);
+        sys_close(c);
+        print("Client disconnected\n");
+    }
+
+    return;
+}

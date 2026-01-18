@@ -1,0 +1,90 @@
+//depends on liblang/mem.lang
+
+//worls only with arrays of dq
+func remove_item_by_value(dq arr, dq length, dq value){
+	if length == 0 { return 0; }
+	dq i = 0;
+	while i < length {
+		if arr[i] == value {
+			// shift remaining items left
+			dq j = i;
+			while j < (length - 1) {
+				arr[j] = arr[j + 1];
+				j++;
+			}
+			return length - 1; // new length
+		}
+		i++;
+	}
+	return length; // unchanged length
+}
+
+//AREA FOR STRUCT ARRAY FUNCTIONS
+//ARRAYS OF STRUCTS DO NOT EXISTS, SO WE USE NORMAL ARRAYS AND FUNCTIONS TO MANAGE THEM
+// SA_ = Struct Array
+
+//remove first occurrence of data on struct_ptr from array_struct
+func SA_remove_item_by_struct_data(dq array_struct, dq current_array_length, ptr struct_ptr, dq struct_size){
+    if current_array_length == 0 { 
+        return 0; 
+    }
+
+    dq i = 0;
+    while i <= (current_array_length - struct_size) {
+        if cmpmem(array_struct + i, struct_ptr, struct_size) == 1 {
+            // Shift remaining bytes left by struct_size
+            shift_left_bytes(array_struct + i, current_array_length - i, struct_size);
+            return current_array_length - struct_size;
+        }
+        i += struct_size; // step by element size
+    }
+    return current_array_length;
+}
+
+//copies data in struct_ptr to array_struct at index
+func SA_set_item_by_index(dq array_struct, dq current_array_length, dq index, ptr struct_ptr, dq struct_size){
+    index = index * struct_size; // convert to byte index
+    if (index >= current_array_length) { 
+        return -1; 
+    } 
+    if (index + struct_size) > current_array_length { 
+        return -2; 
+    }
+
+    dq i = 0;
+    while i < struct_size {
+        array_struct[index + i] = struct_ptr[i];
+        i++;
+    }
+    return 0; // success
+}
+
+//copies data from array_struct at index to struct_ptr
+func SA_get_item_by_index_to_var(ptr struct_ptr, dq struct_size, dq array_struct, dq current_array_length, dq index){
+    index = index * struct_size; // convert to byte index
+    if (index >= current_array_length) { 
+        return -1; 
+    } 
+    if (index + struct_size) > current_array_length { 
+        return -2; 
+    }
+
+    dq i = 0;
+    while i < struct_size {
+        struct_ptr[i] = array_struct[index + i];
+        i++;
+    }
+    return 0; // success
+}
+
+//returns pointer to item at index in array_struct
+func SA_get_ptr_by_index(dq array_struct, dq current_array_length, dq index, dq struct_size){
+    index = index * struct_size; // convert to byte index
+    if (index >= current_array_length) { 
+        return 0; 
+    } 
+    if (index + struct_size) > current_array_length { 
+        return 0; 
+    }
+    return array_struct + index;
+}

@@ -1,0 +1,50 @@
+//depends on liblang/mem.lang
+//depends on liblang/threads.lang
+
+// Simple futex-backed lock helpers.
+// Note: these use a 64-bit integer at `lock_addr` where 0==unlocked, 1==locked.
+
+func create_lock(ptr unused_var){
+    *<dd>unused_var = 0;
+    return unused_var;
+}
+
+// tries to acquire lock, returns 1 if successful, 0 if already locked
+// tries to acquire lock, returns 1 if successful, 0 if already locked
+func lock_try_lock(ptr lock_addr){
+    if lock_addr == 0 { return 0; }
+    if *<dd>lock_addr == 0 {
+        *<dd>lock_addr = 1;
+        return 1;
+    }
+    return 0;
+}
+
+// blocks until lock is acquired
+// will wait forever until the lock is acquired
+// blocks until lock is acquired
+// will wait forever until the lock is acquired
+func lock_lock(ptr lock_addr){
+    if lock_addr == 0 { return; }
+    dq FUTEX_WAIT = 0;
+    while 1 == 1 {
+        if *<dd>lock_addr == 0 {
+            *<dd>lock_addr = 1;
+            return;
+        }
+        // value we observed; futex will wait while *lock_addr == cur
+        dd cur = *<dd>lock_addr;
+        sys_futex(lock_addr, FUTEX_WAIT, cur, 0, 0, 0);
+    }
+}
+
+// releases lock and wakes one waiter
+// releases lock and wakes one waiter
+func lock_unlock(ptr lock_addr){
+    if lock_addr == 0 { return; }
+    // unlock then wake one waiter
+    *<dd>lock_addr = 0;
+    dq FUTEX_WAKE = 1;
+    sys_futex(lock_addr, FUTEX_WAKE, 1, 0, 0, 0);
+    return;
+}
