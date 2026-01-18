@@ -1,5 +1,7 @@
 import os
 import re
+import socket
+import threading
 import xml.etree.ElementTree as ET
 from concurrent import futures
 
@@ -8,10 +10,13 @@ import grpc
 import messages_pb2
 import messages_pb2_grpc
 from db_connection import connect, ensure_schema
+from xml_processor import handle_client, start_worker
 
 
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 50051
+DEFAULT_SOCKET_HOST = "0.0.0.0"
+DEFAULT_SOCKET_PORT = 36412
 
 
 BOOKS_QUERY = """
@@ -193,5 +198,35 @@ def serve():
     server.wait_for_termination()
 
 
-if __name__ == "__main__":
+def run_socket_server():
+    host = os.getenv("SOCKET_HOST", DEFAULT_SOCKET_HOST)
+    port = int(os.getenv("SOCKET_PORT", str(DEFAULT_SOCKET_PORT)))
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((host, port))
+        server.listen(5)
+        server.settimeout(1.0)
+        print(f"Socket server listening on {host}:{port}")
+        try:
+            while True:
+                try:
+                    conn, addr = server.accept()
+                except socket.timeout:
+                    continue
+                thread = threading.Thread(
+                    target=handle_client, args=(conn, addr), daemon=True
+                )
+                thread.start()
+        except KeyboardInterrupt:
+            print("Socket server closed")
+
+
+def main():
+    start_worker()
+    socket_thread = threading.Thread(target=run_socket_server, daemon=True)
+    socket_thread.start()
     serve()
+
+
+if __name__ == "__main__":
+    main()

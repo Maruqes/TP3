@@ -65,7 +65,8 @@ func Logica(filepath string) error {
 	//mandar header
 	filename := filepath
 
-	mapperv1 := `{"root":"books","item":"book","schema":{"title":"title","authors":"authors","publisher":"publisher","language":"language","ISBN":{"isbn_10":"isbn_10","isbn_13":"isbn_13"},"description":"description"}}`
+	// mapperv1 := `{"root":"books","item":"book","schema":{"title":"title","authors":"authors","publisher":"publisher","language":"language","ISBN":{"isbn_10":"isbn_10","isbn_13":"isbn_13"},"description":"description"}}`
+
 	//Versão com thumbnails
 	mapperv2 := `{"root":"books","item":"book","schema":{"title":"title","authors":"authors","publisher":"publisher","language":"language","ISBN":{"isbn_10":"isbn_10","isbn_13":"isbn_13"},"description":"description"},"thumbnails":{"smallThumbnail":"smallThumbnail","thumbnail":"thumbnail"}}`
 
