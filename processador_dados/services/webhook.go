@@ -11,7 +11,9 @@ import (
 )
 
 type webhookPayload struct {
-	Status json.RawMessage `json:"status"`
+	Status    json.RawMessage `json:"status"`
+	RequestId json.RawMessage `json:"request_id"`
+	RowId     json.RawMessage `json:"row_id"`
 }
 
 func StartWebhookServer() error {
@@ -57,7 +59,19 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("webhook status=%s", status)
+	reqid, err := normalizeStatus(payload.RequestId)
+	if err != nil {
+		http.Error(w, "invalid status", http.StatusBadRequest)
+		return
+	}
+
+	ro, err := normalizeStatus(payload.RowId)
+	if err != nil {
+		http.Error(w, "invalid status", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("webhook status=%s request_id=%s db_id=%s", status, reqid, ro)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("ok"))
 }

@@ -28,7 +28,7 @@ func getInfoAndFix(sok *Socket, line CsvLine) {
 		fmt.Println("NO ISBN")
 		return
 	}
-	desc,smallThumb,thumb, err := apiexterna.GetLivroDescription(line.ISBN_13)
+	desc, smallThumb, thumb, err := apiexterna.GetLivroDescription(line.ISBN_13)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {

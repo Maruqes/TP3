@@ -20,8 +20,7 @@ type googleBooksResponse struct {
 	} `json:"items"`
 }
 
-
-func GetLivroDescription(ISBN string) (*string,*string,*string, error) {
+func GetLivroDescription(ISBN string) (*string, *string, *string, error) {
 	ISBN = strings.ReplaceAll(ISBN, "-", "")
 
 	url := "https://www.googleapis.com/books/v1/volumes?q=isbn:" + ISBN

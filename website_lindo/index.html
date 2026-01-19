@@ -215,6 +215,63 @@ const GRAPHQL_CONFIG = {
 	}
 };
 
+// Queries confirmed from bi_service/lib/bi_service/logic.ex (Absinthe uses snake_case field names).
+const BOOK_FIELDS = `
+	title
+	authors
+	publisher
+	isbn_10
+	isbn_13
+	description
+	small_thumbnail
+	thumbnail
+`;
+
+const GRAPHQL_QUERIES = {
+	ALL_BOOKS: `
+		query Books {
+			books {
+${BOOK_FIELDS}
+			}
+		}
+	`,
+	SEARCH_BY_NAME: `
+		query SearchByName($name: String!) {
+			search_by_name(name: $name) {
+${BOOK_FIELDS}
+			}
+		}
+	`,
+	SEARCH_BY_AUTHOR: `
+		query SearchByAuthor($author: String!) {
+			search_by_author(author: $author) {
+${BOOK_FIELDS}
+			}
+		}
+	`,
+	GET_AUTHORS: `
+		query GetAuthors {
+			get_authors {
+				name
+			}
+		}
+	`,
+	COMBINED: `
+		query Combined {
+			books {
+				title
+				authors
+				publisher
+				small_thumbnail
+				thumbnail
+			}
+			get_authors {
+				name
+			}
+		}
+	`
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // GRAPHQL CLIENT CLASS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -276,21 +333,7 @@ class EpicGraphQLClient {
 	 * Fetch all books
 	 */
 	async getAllBooks() {
-		const query = `
-            query GetAllBooks {
-                books {
-                    title
-                    authors
-                    publisher
-                    isbn_10
-                    isbn_13
-                    description
-                    small_thumbnail
-                    thumbnail
-                }
-            }
-        `;
-		const data = await this.query(query);
+		const data = await this.query(GRAPHQL_QUERIES.ALL_BOOKS);
 		return data.books || [];
 	}
 
@@ -298,21 +341,7 @@ class EpicGraphQLClient {
 	 * Search books by name
 	 */
 	async searchBooksByName(name) {
-		const query = `
-            query SearchByName($name: String!) {
-                search_by_name(name: $name) {
-                    title
-                    authors
-                    publisher
-                    isbn_10
-                    isbn_13
-                    description
-                    small_thumbnail
-                    thumbnail
-                }
-            }
-        `;
-		const data = await this.query(query, { name });
+		const data = await this.query(GRAPHQL_QUERIES.SEARCH_BY_NAME, { name });
 		return data.search_by_name || [];
 	}
 
@@ -320,21 +349,7 @@ class EpicGraphQLClient {
 	 * Search books by author
 	 */
 	async searchBooksByAuthor(author) {
-		const query = `
-            query SearchByAuthor($author: String!) {
-                search_by_author(author: $author) {
-                    title
-                    authors
-                    publisher
-                    isbn_10
-                    isbn_13
-                    description
-                    small_thumbnail
-                    thumbnail
-                }
-            }
-        `;
-		const data = await this.query(query, { author });
+		const data = await this.query(GRAPHQL_QUERIES.SEARCH_BY_AUTHOR, { author });
 		return data.search_by_author || [];
 	}
 
@@ -342,14 +357,7 @@ class EpicGraphQLClient {
 	 * Fetch all authors
 	 */
 	async getAllAuthors() {
-		const query = `
-            query GetAuthors {
-                get_authors {
-                    name
-                }
-            }
-        `;
-		const data = await this.query(query);
+		const data = await this.query(GRAPHQL_QUERIES.GET_AUTHORS);
 		return data.get_authors || [];
 	}
 
@@ -357,20 +365,7 @@ class EpicGraphQLClient {
 	 * Combined query for multiple datasets
 	 */
 	async getCombinedData() {
-		const query = `
-            query EpicCombinedQuery {
-                books {
-                    title
-                    authors
-                    publisher
-                    thumbnail
-                }
-                get_authors {
-                    name
-                }
-            }
-        `;
-		const data = await this.query(query);
+		const data = await this.query(GRAPHQL_QUERIES.COMBINED);
 		return {
 			books: data.books || [],
 			authors: data.get_authors || []
