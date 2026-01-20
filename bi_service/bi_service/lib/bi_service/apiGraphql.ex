@@ -52,12 +52,17 @@ defmodule BiService.ApiGraphql do
   end
 
   defp normalize_book(%Messages.Book{} = book) do
+    isbn_10 = book_isbn_value(book, [:isbn_10, :isbn10, "isbn_10", "isbn10", "ISBN_10", "ISBN10"])
+    isbn_13 = book_isbn_value(book, [:isbn_13, :isbn13, "isbn_13", "isbn13", "ISBN_13", "ISBN13"])
+
     %{
       title: book.title,
       authors: format_authors(book.authors),
       publisher: book.publisher,
-      isbn_10: book.isbn_10,
-      isbn_13: book.isbn_13,
+      isbn_10: isbn_10,
+      isbn_13: isbn_13,
+      isbn10: isbn_10,
+      isbn13: isbn_13,
       description: book.description,
       small_thumbnail: book.small_thumbnail,
       thumbnail: book.thumbnail
@@ -65,16 +70,25 @@ defmodule BiService.ApiGraphql do
   end
 
   defp normalize_book(%{} = book) do
+    isbn_10 = book_isbn_value(book, [:isbn_10, :isbn10, "isbn_10", "isbn10", "ISBN_10", "ISBN10"])
+    isbn_13 = book_isbn_value(book, [:isbn_13, :isbn13, "isbn_13", "isbn13", "ISBN_13", "ISBN13"])
+
     %{
       title: Map.get(book, "title"),
       authors: format_authors(Map.get(book, "authors")),
       publisher: Map.get(book, "publisher"),
-      isbn_10: Map.get(book, "isbn_10"),
-      isbn_13: Map.get(book, "isbn_13"),
+      isbn_10: isbn_10,
+      isbn_13: isbn_13,
+      isbn10: isbn_10,
+      isbn13: isbn_13,
       description: Map.get(book, "description"),
       small_thumbnail: Map.get(book, "small_thumbnail"),
       thumbnail: Map.get(book, "thumbnail")
     }
+  end
+
+  defp book_isbn_value(book, keys) do
+    Enum.find_value(keys, &Map.get(book, &1))
   end
 
   defp format_authors(authors) when is_list(authors) do
