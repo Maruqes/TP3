@@ -22,7 +22,6 @@ func ConsumirCoelho() {
 	rabbitURL := os.Getenv("RABBITMQ")
 	queue := "tp3"
 
-	// aceitar certificados self-signed
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -39,33 +38,30 @@ func ConsumirCoelho() {
 	}
 	defer ch.Close()
 
-	// Garantir que a queue existe (tem de bater certo com o producer)
 	_, err = ch.QueueDeclare(
 		queue,
-		true,  // durable
-		false, // autoDelete
-		false, // exclusive
-		false, // noWait
-		nil,   // args
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		log.Fatalf("QueueDeclare: %v", err)
 	}
 
-	// Prefetch: não levar 1000 msgs para a RAM antes de as processares
 	if err := ch.Qos(10, 0, false); err != nil {
 		log.Fatalf("Qos: %v", err)
 	}
 
-	// Consumir com ACK manual (autoAck=false)
 	msgs, err := ch.Consume(
 		queue,
-		"go-consumer-1", // consumer tag
-		false,           // autoAck
-		false,           // exclusive
-		false,           // noLocal (não usado pelo RabbitMQ)
-		false,           // noWait
-		nil,             // args
+		"go-consumer-1",
+		false,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		log.Fatalf("Consume: %v", err)
@@ -89,7 +85,6 @@ func ConsumirCoelho() {
 				return
 			}
 
-			// Aqui processas a mensagem
 			log.Printf("msg: deliveryTag=%d body=%s", d.DeliveryTag, string(d.Body))
 			go func() {
 				err := services.Logica(string(d.Body))
@@ -97,7 +92,6 @@ func ConsumirCoelho() {
 					fmt.Println(err.Error())
 				}
 			}()
-			// Se correu bem:
 			if err := d.Ack(false); err != nil {
 				log.Printf("ack erro: %v", err)
 			}

@@ -54,7 +54,6 @@ func main() {
         }
 
         print("Client connected\n");
-        // Build full HTTP/1.1 response so browser renders HTML
         dq body_len = bodyLen; // already computed
         dq lenBuf = db<16>;
         int_to_string(body_len, lenBuf, 16);
