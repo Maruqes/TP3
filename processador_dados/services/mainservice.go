@@ -20,9 +20,7 @@ func SetupService() {
 }
 
 func getInfoAndFix(sok *Socket, line CsvLine) {
-	//escrever csv no disco
 
-	//ler linha de cada csv
 
 	if line.ISBN_13 == "N/A" {
 		fmt.Println("NO ISBN")
@@ -46,7 +44,6 @@ func getInfoAndFix(sok *Socket, line CsvLine) {
 	}
 	fmt.Println(toSend)
 
-	//apagar csv do disco com webhook
 }
 
 func Logica(filepath string) error {
