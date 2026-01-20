@@ -445,18 +445,6 @@ ${BOOK_FIELDS}
             // GRAPHQL CLIENT CLASS
             // ═══════════════════════════════════════════════════════════════════════════
 
-            function normalizeBookFields(book) {
-                if (!book || typeof book !== "object") return book;
-                const normalized = { ...book };
-                const isbn10 = book.isbn_10 ?? book.isbn10;
-                const isbn13 = book.isbn_13 ?? book.isbn13;
-                const smallThumb = book.small_thumbnail ?? book.smallThumbnail;
-                if (isbn10 != null) normalized.isbn_10 = isbn10;
-                if (isbn13 != null) normalized.isbn_13 = isbn13;
-                if (smallThumb != null) normalized.small_thumbnail = smallThumb;
-                return normalized;
-            }
-
             class EpicGraphQLClient {
                 constructor(config) {
                     this.baseUrl = config.BASE_URL;
@@ -529,7 +517,7 @@ ${BOOK_FIELDS}
                  */
                 async getAllBooks() {
                     const data = await this.query(GRAPHQL_QUERIES.ALL_BOOKS);
-                    return (data.books || []).map(normalizeBookFields);
+                    return data.books || [];
                 }
 
                 /**
@@ -540,7 +528,7 @@ ${BOOK_FIELDS}
                         GRAPHQL_QUERIES.SEARCH_BY_NAME,
                         { name },
                     );
-                    return (data.search_by_name || []).map(normalizeBookFields);
+                    return data.search_by_name || [];
                 }
 
                 /**
@@ -551,7 +539,7 @@ ${BOOK_FIELDS}
                         GRAPHQL_QUERIES.SEARCH_BY_AUTHOR,
                         { author },
                     );
-                    return (data.search_by_author || []).map(normalizeBookFields);
+                    return data.search_by_author || [];
                 }
 
                 /**
@@ -568,7 +556,7 @@ ${BOOK_FIELDS}
                 async getCombinedData() {
                     const data = await this.query(GRAPHQL_QUERIES.COMBINED);
                     return {
-                        books: (data.books || []).map(normalizeBookFields),
+                        books: data.books || [],
                         authors: data.get_authors || [],
                     };
                 }
