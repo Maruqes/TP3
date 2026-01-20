@@ -2,7 +2,6 @@ defmodule BiService.ApiGraphql do
   def list_books(_parent, _args, %{context: %{grpc_channel: channel}}) do
     with {:ok, %Messages.BookList{} = result} <- BiService.Grpc.get_books(channel) do
       books = result.books || []
-      IO.inspect(books)
       {:ok, Enum.map(books, &normalize_book/1)}
     else
       {:error, reason} -> {:error, reason}
