@@ -1,262 +1,431 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Library Analytics</title>
 
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Library Analytics</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            display: ['"Space Grotesk"', "sans-serif"],
+                            body: ['"Source Serif 4"', "serif"],
+                        },
+                    },
+                },
+            };
+        </script>
 
-	<script src="https://cdn.tailwindcss.com"></script>
-	<script>
-		tailwind.config = {
-			theme: {
-				extend: {
-					fontFamily: {
-						display: ['"Space Grotesk"', 'sans-serif'],
-						body: ['"Source Serif 4"', 'serif']
-					}
-				}
-			}
-		};
-	</script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Source+Serif+4:wght@300;400;600&display=swap"
+            rel="stylesheet"
+        />
 
-	<link
-		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Source+Serif+4:wght@300;400;600&display=swap"
-		rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
 
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+        <style>
+            body {
+                font-family: "Source Serif 4", serif;
+                background:
+                    radial-gradient(
+                        110% 120% at 80% 10%,
+                        rgba(16, 185, 129, 0.18),
+                        transparent 55%
+                    ),
+                    linear-gradient(135deg, #0b1221, #101826 65%, #0c1324);
+            }
 
-	<style>
-		body {
-			font-family: 'Source Serif 4', serif;
-			background: radial-gradient(110% 120% at 80% 10%, rgba(16, 185, 129, 0.18), transparent 55%),
-				linear-gradient(135deg, #0b1221, #101826 65%, #0c1324);
-		}
+            #particles-js {
+                position: fixed;
+                inset: 0;
+                z-index: 0;
+            }
 
-		#particles-js {
-			position: fixed;
-			inset: 0;
-			z-index: 0;
-		}
+            .loading {
+                text-align: center;
+                padding: 32px;
+                font-size: 1.1rem;
+                color: rgba(226, 232, 240, 0.9);
+            }
 
-		.loading {
-			text-align: center;
-			padding: 32px;
-			font-size: 1.1rem;
-			color: rgba(226, 232, 240, 0.9);
-		}
+            .spinner {
+                border: 3px solid rgba(16, 185, 129, 0.15);
+                border-top: 3px solid rgba(16, 185, 129, 0.85);
+                border-radius: 999px;
+                width: 44px;
+                height: 44px;
+                animation: spin 0.9s linear infinite;
+                margin: 0 auto 12px;
+            }
 
-		.spinner {
-			border: 3px solid rgba(16, 185, 129, 0.15);
-			border-top: 3px solid rgba(16, 185, 129, 0.85);
-			border-radius: 999px;
-			width: 44px;
-			height: 44px;
-			animation: spin 0.9s linear infinite;
-			margin: 0 auto 12px;
-		}
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
 
-		@keyframes spin {
-			to {
-				transform: rotate(360deg);
-			}
-		}
+            .error-message {
+                background: rgba(248, 113, 113, 0.15);
+                border: 1px solid rgba(248, 113, 113, 0.4);
+                padding: 20px;
+                border-radius: 16px;
+                color: #fecaca;
+            }
+        </style>
+    </head>
 
-		.error-message {
-			background: rgba(248, 113, 113, 0.15);
-			border: 1px solid rgba(248, 113, 113, 0.4);
-			padding: 20px;
-			border-radius: 16px;
-			color: #fecaca;
-		}
-	</style>
-</head>
+    <body class="min-h-screen text-slate-100">
+        <div id="particles-js"></div>
 
-<body class="min-h-screen text-slate-100">
-	<div id="particles-js"></div>
+        <div class="relative z-10">
+            <div
+                class="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10"
+            >
+                <header
+                    class="rounded-3xl border border-emerald-300/20 bg-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur"
+                >
+                    <p
+                        class="text-xs uppercase tracking-[0.35em] text-emerald-200/70"
+                    >
+                        Reading dashboard
+                    </p>
+                    <h1
+                        class="mt-3 font-display text-4xl font-semibold text-slate-50 md:text-5xl"
+                    >
+                        Library analytics
+                    </h1>
+                    <p class="mt-3 max-w-2xl text-base text-slate-200/80">
+                        A visual snapshot of books, authors, and publishers.
+                        Search, compare, and open each book in a dedicated
+                        panel.
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-3 text-sm">
+                        <span
+                            class="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-1"
+                            >GraphQL server</span
+                        >
+                        <span
+                            class="rounded-full border border-slate-400/30 bg-white/5 px-4 py-1"
+                            >Live updates</span
+                        >
+                        <span
+                            class="rounded-full border border-slate-400/30 bg-white/5 px-4 py-1"
+                            >Consolidated data</span
+                        >
+                    </div>
+                </header>
 
-	<div class="relative z-10">
-		<div class="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10">
-			<header class="rounded-3xl border border-emerald-300/20 bg-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur">
-				<p class="text-xs uppercase tracking-[0.35em] text-emerald-200/70">Reading dashboard</p>
-				<h1 class="mt-3 font-display text-4xl font-semibold text-slate-50 md:text-5xl">Library analytics</h1>
-				<p class="mt-3 max-w-2xl text-base text-slate-200/80">A visual snapshot of books, authors, and publishers. Search, compare, and open each book in a dedicated panel.</p>
-				<div class="mt-6 flex flex-wrap gap-3 text-sm">
-					<span class="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-1">GraphQL server</span>
-					<span class="rounded-full border border-slate-400/30 bg-white/5 px-4 py-1">Live updates</span>
-					<span class="rounded-full border border-slate-400/30 bg-white/5 px-4 py-1">Consolidated data</span>
-				</div>
-			</header>
+                <section
+                    id="statsBar"
+                    class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+                ></section>
 
-			<section id="statsBar" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></section>
+                <section class="grid gap-4 lg:grid-cols-3">
+                    <div
+                        class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h3 class="font-display text-lg text-emerald-200">
+                            Search by title
+                        </h3>
+                        <input
+                            type="text"
+                            id="searchName"
+                            placeholder="Type the book title"
+                            class="mt-3 w-full rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:border-emerald-300/60 focus:outline-none"
+                        />
+                        <button
+                            onclick="searchByName()"
+                            class="mt-3 w-full rounded-xl bg-emerald-300/90 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-200"
+                        >
+                            Search
+                        </button>
+                    </div>
 
-			<section class="grid gap-4 lg:grid-cols-3">
-				<div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h3 class="font-display text-lg text-emerald-200">Search by title</h3>
-					<input type="text" id="searchName" placeholder="Type the book title"
-						class="mt-3 w-full rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:border-emerald-300/60 focus:outline-none">
-					<button onclick="searchByName()"
-						class="mt-3 w-full rounded-xl bg-emerald-300/90 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-200">Search</button>
-				</div>
+                    <div
+                        class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h3 class="font-display text-lg text-emerald-200">
+                            Search by author
+                        </h3>
+                        <input
+                            type="text"
+                            id="searchAuthor"
+                            placeholder="Type the author name"
+                            class="mt-3 w-full rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:border-emerald-300/60 focus:outline-none"
+                        />
+                        <button
+                            onclick="searchByAuthor()"
+                            class="mt-3 w-full rounded-xl bg-emerald-300/90 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-200"
+                        >
+                            Search
+                        </button>
+                    </div>
 
-				<div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h3 class="font-display text-lg text-emerald-200">Search by author</h3>
-					<input type="text" id="searchAuthor" placeholder="Type the author name"
-						class="mt-3 w-full rounded-xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:border-emerald-300/60 focus:outline-none">
-					<button onclick="searchByAuthor()"
-						class="mt-3 w-full rounded-xl bg-emerald-300/90 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-200">Search</button>
-				</div>
+                    <div
+                        class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h3 class="font-display text-lg text-emerald-200">
+                            Quick actions
+                        </h3>
+                        <button
+                            onclick="loadAllBooks()"
+                            class="mt-3 w-full rounded-xl border border-emerald-300/40 px-4 py-3 font-semibold text-emerald-100 transition hover:border-emerald-200/80 hover:text-emerald-50"
+                        >
+                            Load all books
+                        </button>
+                        <button
+                            onclick="loadAuthors()"
+                            class="mt-3 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-semibold text-slate-100 transition hover:border-white/30"
+                        >
+                            View authors
+                        </button>
+                    </div>
+                </section>
 
-				<div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h3 class="font-display text-lg text-emerald-200">Quick actions</h3>
-					<button onclick="loadAllBooks()"
-						class="mt-3 w-full rounded-xl border border-emerald-300/40 px-4 py-3 font-semibold text-emerald-100 transition hover:border-emerald-200/80 hover:text-emerald-50">Load all books</button>
-					<button onclick="loadAuthors()"
-						class="mt-3 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-semibold text-slate-100 transition hover:border-white/30">View authors</button>
-				</div>
-			</section>
+                <section class="grid gap-6 xl:grid-cols-2">
+                    <div
+                        class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h4 class="font-display text-lg text-emerald-200">
+                            Top publishers by title count
+                        </h4>
+                        <canvas id="publishersChart" class="mt-4"></canvas>
+                    </div>
 
-			<section class="grid gap-6 xl:grid-cols-2">
-				<div class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h4 class="font-display text-lg text-emerald-200">Top publishers by title count</h4>
-					<canvas id="publishersChart" class="mt-4"></canvas>
-				</div>
+                    <div
+                        class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h4 class="font-display text-lg text-emerald-200">
+                            Most frequent authors
+                        </h4>
+                        <canvas id="authorsChart" class="mt-4"></canvas>
+                    </div>
 
-				<div class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h4 class="font-display text-lg text-emerald-200">Most frequent authors</h4>
-					<canvas id="authorsChart" class="mt-4"></canvas>
-				</div>
+                    <div
+                        class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h4 class="font-display text-lg text-emerald-200">
+                            Timeline (detected years)
+                        </h4>
+                        <canvas id="yearChart" class="mt-4"></canvas>
+                    </div>
 
-				<div class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h4 class="font-display text-lg text-emerald-200">Timeline (detected years)</h4>
-					<canvas id="yearChart" class="mt-4"></canvas>
-				</div>
+                    <div
+                        class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
+                    >
+                        <h4 class="font-display text-lg text-emerald-200">
+                            Data coverage
+                        </h4>
+                        <canvas id="statsChart" class="mt-4"></canvas>
+                    </div>
+                </section>
 
-				<div class="chart-container rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-					<h4 class="font-display text-lg text-emerald-200">Data coverage</h4>
-					<canvas id="statsChart" class="mt-4"></canvas>
-				</div>
-			</section>
+                <section>
+                    <h2 class="font-display text-2xl text-slate-50">Books</h2>
+                    <div
+                        id="booksContainer"
+                        class="books-grid mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                    ></div>
+                </section>
+            </div>
+        </div>
 
-			<section>
-				<h2 class="font-display text-2xl text-slate-50">Books</h2>
-				<div id="booksContainer" class="books-grid mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
-			</section>
-		</div>
-	</div>
+        <div
+            id="bookModal"
+            class="modal-overlay fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 px-4 py-8"
+        >
+            <div
+                class="w-full max-w-3xl rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur"
+            >
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p
+                            class="text-xs uppercase tracking-[0.3em] text-emerald-200/70"
+                        >
+                            Book details
+                        </p>
+                        <h3
+                            id="bookModalTitle"
+                            class="mt-2 font-display text-2xl text-slate-50"
+                        >
+                            Title
+                        </h3>
+                    </div>
+                    <button
+                        data-modal-close
+                        class="rounded-full border border-white/20 px-4 py-2 text-sm text-slate-200 transition hover:border-white/40"
+                    >
+                        Close
+                    </button>
+                </div>
+                <div class="mt-6 grid gap-6 lg:grid-cols-[240px_1fr]">
+                    <img
+                        id="bookModalImage"
+                        alt="Cover"
+                        class="h-72 w-full rounded-2xl object-cover"
+                        src=""
+                    />
+                    <div class="space-y-4 text-slate-200/80">
+                        <div>
+                            <p
+                                class="text-xs uppercase tracking-[0.25em] text-slate-400"
+                            >
+                                Author(s)
+                            </p>
+                            <p
+                                id="bookModalAuthors"
+                                class="text-base text-slate-100"
+                            ></p>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <p
+                                    class="text-xs uppercase tracking-[0.25em] text-slate-400"
+                                >
+                                    Publisher
+                                </p>
+                                <p
+                                    id="bookModalPublisher"
+                                    class="text-base text-slate-100"
+                                ></p>
+                            </div>
+                            <div>
+                                <p
+                                    class="text-xs uppercase tracking-[0.25em] text-slate-400"
+                                >
+                                    ISBN-10
+                                </p>
+                                <p
+                                    id="bookModalIsbn10"
+                                    class="text-base text-slate-100"
+                                ></p>
+                            </div>
+                            <div>
+                                <p
+                                    class="text-xs uppercase tracking-[0.25em] text-slate-400"
+                                >
+                                    ISBN-13
+                                </p>
+                                <p
+                                    id="bookModalIsbn13"
+                                    class="text-base text-slate-100"
+                                ></p>
+                            </div>
+                        </div>
+                        <div>
+                            <p
+                                class="text-xs uppercase tracking-[0.25em] text-slate-400"
+                            >
+                                Description
+                            </p>
+                            <p
+                                id="bookModalDescription"
+                                class="text-sm leading-relaxed text-slate-200/90"
+                            ></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-	<div id="bookModal" class="modal-overlay fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 px-4 py-8">
-		<div class="w-full max-w-3xl rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur">
-			<div class="flex items-start justify-between gap-4">
-				<div>
-					<p class="text-xs uppercase tracking-[0.3em] text-emerald-200/70">Book details</p>
-					<h3 id="bookModalTitle" class="mt-2 font-display text-2xl text-slate-50">Title</h3>
-				</div>
-				<button data-modal-close class="rounded-full border border-white/20 px-4 py-2 text-sm text-slate-200 transition hover:border-white/40">Close</button>
-			</div>
-			<div class="mt-6 grid gap-6 lg:grid-cols-[240px_1fr]">
-				<img id="bookModalImage" alt="Cover" class="h-72 w-full rounded-2xl object-cover" src="">
-				<div class="space-y-4 text-slate-200/80">
-					<div>
-						<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Author(s)</p>
-						<p id="bookModalAuthors" class="text-base text-slate-100"></p>
-					</div>
-					<div class="grid gap-4 sm:grid-cols-2">
-						<div>
-							<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Publisher</p>
-							<p id="bookModalPublisher" class="text-base text-slate-100"></p>
-						</div>
-						<div>
-							<p class="text-xs uppercase tracking-[0.25em] text-slate-400">ISBN-10</p>
-							<p id="bookModalIsbn10" class="text-base text-slate-100"></p>
-						</div>
-						<div>
-							<p class="text-xs uppercase tracking-[0.25em] text-slate-400">ISBN-13</p>
-							<p id="bookModalIsbn13" class="text-base text-slate-100"></p>
-						</div>
-					</div>
-					<div>
-					<p class="text-xs uppercase tracking-[0.25em] text-slate-400">Description</p>
-						<p id="bookModalDescription" class="text-sm leading-relaxed text-slate-200/90"></p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+        <div
+            id="authorsModal"
+            class="modal-overlay fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 px-4 py-8"
+        >
+            <div
+                class="w-full max-w-2xl rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur"
+            >
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p
+                            class="text-xs uppercase tracking-[0.3em] text-emerald-200/70"
+                        >
+                            Authors
+                        </p>
+                        <h3 class="mt-2 font-display text-2xl text-slate-50">
+                            Full list
+                        </h3>
+                        <p
+                            id="authorsModalCount"
+                            class="mt-1 text-sm text-slate-300/80"
+                        ></p>
+                    </div>
+                    <button
+                        data-modal-close
+                        class="rounded-full border border-white/20 px-4 py-2 text-sm text-slate-200 transition hover:border-white/40"
+                    >
+                        Close
+                    </button>
+                </div>
+                <ul
+                    id="authorsModalList"
+                    class="mt-6 grid max-h-[50vh] gap-2 overflow-y-auto pr-1 text-sm text-slate-100"
+                ></ul>
+            </div>
+        </div>
 
-	<div id="authorsModal" class="modal-overlay fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 px-4 py-8">
-		<div class="w-full max-w-2xl rounded-3xl border border-white/10 bg-slate-950/90 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur">
-			<div class="flex items-start justify-between gap-4">
-				<div>
-				<p class="text-xs uppercase tracking-[0.3em] text-emerald-200/70">Authors</p>
-				<h3 class="mt-2 font-display text-2xl text-slate-50">Full list</h3>
-					<p id="authorsModalCount" class="mt-1 text-sm text-slate-300/80"></p>
-				</div>
-			<button data-modal-close class="rounded-full border border-white/20 px-4 py-2 text-sm text-slate-200 transition hover:border-white/40">Close</button>
-			</div>
-			<ul id="authorsModalList" class="mt-6 grid max-h-[50vh] gap-2 overflow-y-auto pr-1 text-sm text-slate-100"></ul>
-		</div>
-	</div>
+        <script>
+            // ═══════════════════════════════════════════════════════════════════════════
+            // EPIC GRAPHQL CLIENT - POWERED BY ELIXIR & ABSINTHE
+            // ═══════════════════════════════════════════════════════════════════════════
 
-	<script>
-// ═══════════════════════════════════════════════════════════════════════════
-// EPIC GRAPHQL CLIENT - POWERED BY ELIXIR & ABSINTHE
-// ═══════════════════════════════════════════════════════════════════════════
+            // BASE URL CONFIG - USED IN ALL REQUESTS
+            const GRAPHQL_CONFIG = {
+                BASE_URL: "https://elixir-epico.maruqes.com/graphql",
+                TIMEOUT: 30000,
+                HEADERS: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+            };
 
-// BASE URL CONFIG - USED IN ALL REQUESTS
-const GRAPHQL_CONFIG = {
-	BASE_URL: 'https://elixir-epico.maruqes.com/graphql',
-	TIMEOUT: 30000,
-	HEADERS: {
-		'Content-Type': 'application/json',
-		'Accept': 'application/json'
-	}
-};
-
-// Queries confirmed from bi_service/lib/bi_service/logic.ex (Absinthe uses snake_case field names).
-const BOOK_FIELDS = `
+            // Queries confirmed from bi_service/lib/bi_service/logic.ex (Absinthe uses snake_case field names).
+            const BOOK_FIELDS = `
 	title
 	authors
 	publisher
-	isbn_10
-	isbn_13
+	isbn10
+	isbn13
 	description
 	small_thumbnail
 	thumbnail
 `;
 
-const GRAPHQL_QUERIES = {
-	ALL_BOOKS: `
+            const GRAPHQL_QUERIES = {
+                ALL_BOOKS: `
 		query Books {
 			books {
 ${BOOK_FIELDS}
 			}
 		}
 	`,
-	SEARCH_BY_NAME: `
+                SEARCH_BY_NAME: `
 		query SearchByName($name: String!) {
 			search_by_name(name: $name) {
 ${BOOK_FIELDS}
 			}
 		}
 	`,
-	SEARCH_BY_AUTHOR: `
+                SEARCH_BY_AUTHOR: `
 		query SearchByAuthor($author: String!) {
 			search_by_author(author: $author) {
 ${BOOK_FIELDS}
 			}
 		}
 	`,
-	GET_AUTHORS: `
+                GET_AUTHORS: `
 		query GetAuthors {
 			get_authors {
 				name
 			}
 		}
 	`,
-	COMBINED: `
+                COMBINED: `
 		query Combined {
 			books {
 				title
@@ -269,433 +438,520 @@ ${BOOK_FIELDS}
 				name
 			}
 		}
-	`
-};
+	`,
+            };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// GRAPHQL CLIENT CLASS
-// ═══════════════════════════════════════════════════════════════════════════
+            // ═══════════════════════════════════════════════════════════════════════════
+            // GRAPHQL CLIENT CLASS
+            // ═══════════════════════════════════════════════════════════════════════════
 
-class EpicGraphQLClient {
-	constructor(config) {
-		this.baseUrl = config.BASE_URL;
-		this.timeout = config.TIMEOUT;
-		this.headers = config.HEADERS;
-		console.log(`GraphQL client initialized at: ${this.baseUrl}`);
-	}
+            function normalizeBookFields(book) {
+                if (!book || typeof book !== "object") return book;
+                const normalized = { ...book };
+                const isbn10 = book.isbn_10 ?? book.isbn10;
+                const isbn13 = book.isbn_13 ?? book.isbn13;
+                const smallThumb = book.small_thumbnail ?? book.smallThumbnail;
+                if (isbn10 != null) normalized.isbn_10 = isbn10;
+                if (isbn13 != null) normalized.isbn_13 = isbn13;
+                if (smallThumb != null) normalized.small_thumbnail = smallThumb;
+                return normalized;
+            }
 
-	/**
-	 * Main method to run GraphQL queries
-	 */
-	async query(query, variables = {}) {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+            class EpicGraphQLClient {
+                constructor(config) {
+                    this.baseUrl = config.BASE_URL;
+                    this.timeout = config.TIMEOUT;
+                    this.headers = config.HEADERS;
+                    console.log(
+                        `GraphQL client initialized at: ${this.baseUrl}`,
+                    );
+                }
 
-		try {
-			console.log(`Sending GraphQL query to: ${this.baseUrl}`);
-			console.log('Query:', query);
-			console.log('Variables:', variables);
+                /**
+                 * Main method to run GraphQL queries
+                 */
+                async query(query, variables = {}) {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(
+                        () => controller.abort(),
+                        this.timeout,
+                    );
 
-			const response = await fetch(this.baseUrl, {
-				method: 'POST',
-				headers: this.headers,
-				body: JSON.stringify({ query, variables }),
-				signal: controller.signal
-			});
+                    try {
+                        console.log(
+                            `Sending GraphQL query to: ${this.baseUrl}`,
+                        );
+                        console.log("Query:", query);
+                        console.log("Variables:", variables);
 
-			clearTimeout(timeoutId);
+                        const response = await fetch(this.baseUrl, {
+                            method: "POST",
+                            headers: this.headers,
+                            body: JSON.stringify({ query, variables }),
+                            signal: controller.signal,
+                        });
 
-			if (!response.ok) {
-				throw new Error(`HTTP Error! Status: ${response.status}`);
-			}
+                        clearTimeout(timeoutId);
 
-			const result = await response.json();
+                        if (!response.ok) {
+                            throw new Error(
+                                `HTTP Error! Status: ${response.status}`,
+                            );
+                        }
 
-			if (result.errors) {
-				console.error('GraphQL errors:', result.errors);
-				throw new Error(result.errors.map(e => e.message).join(', '));
-			}
+                        const result = await response.json();
 
-			console.log('Query success. Data received:', result.data);
-			return result.data;
-		} catch (error) {
-			clearTimeout(timeoutId);
-			console.error('Query failed:', error);
-			throw error;
-		}
-	}
+                        if (result.errors) {
+                            console.error("GraphQL errors:", result.errors);
+                            throw new Error(
+                                result.errors.map((e) => e.message).join(", "),
+                            );
+                        }
 
-	// ═══════════════════════════════════════════════════════════════════════
-	// BOOK QUERIES
-	// ═══════════════════════════════════════════════════════════════════════
+                        console.log(
+                            "Query success. Data received:",
+                            result.data,
+                        );
+                        return result.data;
+                    } catch (error) {
+                        clearTimeout(timeoutId);
+                        console.error("Query failed:", error);
+                        throw error;
+                    }
+                }
 
-	/**
-	 * Fetch all books
-	 */
-	async getAllBooks() {
-		const data = await this.query(GRAPHQL_QUERIES.ALL_BOOKS);
-		return data.books || [];
-	}
+                // ═══════════════════════════════════════════════════════════════════════
+                // BOOK QUERIES
+                // ═══════════════════════════════════════════════════════════════════════
 
-	/**
-	 * Search books by name
-	 */
-	async searchBooksByName(name) {
-		const data = await this.query(GRAPHQL_QUERIES.SEARCH_BY_NAME, { name });
-		return data.search_by_name || [];
-	}
+                /**
+                 * Fetch all books
+                 */
+                async getAllBooks() {
+                    const data = await this.query(GRAPHQL_QUERIES.ALL_BOOKS);
+                    return (data.books || []).map(normalizeBookFields);
+                }
 
-	/**
-	 * Search books by author
-	 */
-	async searchBooksByAuthor(author) {
-		const data = await this.query(GRAPHQL_QUERIES.SEARCH_BY_AUTHOR, { author });
-		return data.search_by_author || [];
-	}
+                /**
+                 * Search books by name
+                 */
+                async searchBooksByName(name) {
+                    const data = await this.query(
+                        GRAPHQL_QUERIES.SEARCH_BY_NAME,
+                        { name },
+                    );
+                    return (data.search_by_name || []).map(normalizeBookFields);
+                }
 
-	/**
-	 * Fetch all authors
-	 */
-	async getAllAuthors() {
-		const data = await this.query(GRAPHQL_QUERIES.GET_AUTHORS);
-		return data.get_authors || [];
-	}
+                /**
+                 * Search books by author
+                 */
+                async searchBooksByAuthor(author) {
+                    const data = await this.query(
+                        GRAPHQL_QUERIES.SEARCH_BY_AUTHOR,
+                        { author },
+                    );
+                    return (data.search_by_author || []).map(normalizeBookFields);
+                }
 
-	/**
-	 * Combined query for multiple datasets
-	 */
-	async getCombinedData() {
-		const data = await this.query(GRAPHQL_QUERIES.COMBINED);
-		return {
-			books: data.books || [],
-			authors: data.get_authors || []
-		};
-	}
-}
+                /**
+                 * Fetch all authors
+                 */
+                async getAllAuthors() {
+                    const data = await this.query(GRAPHQL_QUERIES.GET_AUTHORS);
+                    return data.get_authors || [];
+                }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CLIENT INITIALIZATION
-// ═══════════════════════════════════════════════════════════════════════════
+                /**
+                 * Combined query for multiple datasets
+                 */
+                async getCombinedData() {
+                    const data = await this.query(GRAPHQL_QUERIES.COMBINED);
+                    return {
+                        books: (data.books || []).map(normalizeBookFields),
+                        authors: data.get_authors || [],
+                    };
+                }
+            }
 
-const graphqlClient = new EpicGraphQLClient(GRAPHQL_CONFIG);
+            // ═══════════════════════════════════════════════════════════════════════════
+            // CLIENT INITIALIZATION
+            // ═══════════════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CHART MANAGERS
-// ═══════════════════════════════════════════════════════════════════════════
+            const graphqlClient = new EpicGraphQLClient(GRAPHQL_CONFIG);
 
-let charts = {
-	publishers: null,
-	authors: null,
-	years: null,
-	stats: null
-};
+            // ═══════════════════════════════════════════════════════════════════════════
+            // CHART MANAGERS
+            // ═══════════════════════════════════════════════════════════════════════════
 
-let currentBooks = [];
-let currentAuthors = [];
-let selectedAuthors = new Set();
-let authorSearchToken = 0;
-const FALLBACK_THUMBNAIL_BASE = 'https://picsum.photos/seed';
+            let charts = {
+                publishers: null,
+                authors: null,
+                years: null,
+                stats: null,
+            };
 
-/**
- * Create publishers chart
- */
-function createPublishersChart(books) {
-	const publisherCounts = {};
-	books.forEach(book => {
-		const publisher = book.publisher || 'Unknown';
-		publisherCounts[publisher] = (publisherCounts[publisher] || 0) + 1;
-	});
+            let currentBooks = [];
+            let currentAuthors = [];
+            let selectedAuthors = new Set();
+            let authorSearchToken = 0;
+            const FALLBACK_THUMBNAIL_BASE = "https://picsum.photos/seed";
 
-	const sortedPublishers = Object.entries(publisherCounts)
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 10);
+            /**
+             * Create publishers chart
+             */
+            function createPublishersChart(books) {
+                const publisherCounts = {};
+                books.forEach((book) => {
+                    const publisher = book.publisher || "Unknown";
+                    publisherCounts[publisher] =
+                        (publisherCounts[publisher] || 0) + 1;
+                });
 
-	const ctx = document.getElementById('publishersChart');
-	if (charts.publishers) charts.publishers.destroy();
+                const sortedPublishers = Object.entries(publisherCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
 
-	charts.publishers = new Chart(ctx, {
-		type: 'doughnut',
-		data: {
-			labels: sortedPublishers.map(p => p[0]),
-			datasets: [{
-				data: sortedPublishers.map(p => p[1]),
-				backgroundColor: generateEpicColors(sortedPublishers.length),
-				borderColor: '#00ff88',
-				borderWidth: 2
-			}]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: true,
-			plugins: {
-				legend: {
-					position: 'right',
-					labels: { color: '#e0e0e0', font: { size: 11 } }
-				},
-				title: {
-					display: true,
-					text: 'Top 10 Publishers',
-					color: '#00ff88',
-					font: { size: 16, weight: 'bold' }
-				}
-			}
-		}
-	});
-}
+                const ctx = document.getElementById("publishersChart");
+                if (charts.publishers) charts.publishers.destroy();
 
-/**
- * Create authors chart
- */
-function createAuthorsChart(books) {
-	const authorCounts = {};
-	books.forEach(book => {
-		if (book.authors) {
-			const authors = Array.isArray(book.authors)
-				? book.authors.map(author => String(author).trim())
-				: book.authors.split(',').map(a => a.trim());
-			authors.forEach(author => {
-				if (author) authorCounts[author] = (authorCounts[author] || 0) + 1;
-			});
-		}
-	});
+                charts.publishers = new Chart(ctx, {
+                    type: "doughnut",
+                    data: {
+                        labels: sortedPublishers.map((p) => p[0]),
+                        datasets: [
+                            {
+                                data: sortedPublishers.map((p) => p[1]),
+                                backgroundColor: generateEpicColors(
+                                    sortedPublishers.length,
+                                ),
+                                borderColor: "#00ff88",
+                                borderWidth: 2,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: "right",
+                                labels: {
+                                    color: "#e0e0e0",
+                                    font: { size: 11 },
+                                },
+                            },
+                            title: {
+                                display: true,
+                                text: "Top 10 Publishers",
+                                color: "#00ff88",
+                                font: { size: 16, weight: "bold" },
+                            },
+                        },
+                    },
+                });
+            }
 
-	const topAuthors = Object.entries(authorCounts)
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 10);
+            /**
+             * Create authors chart
+             */
+            function createAuthorsChart(books) {
+                const authorCounts = {};
+                books.forEach((book) => {
+                    if (book.authors) {
+                        const authors = Array.isArray(book.authors)
+                            ? book.authors.map((author) =>
+                                  String(author).trim(),
+                              )
+                            : book.authors.split(",").map((a) => a.trim());
+                        authors.forEach((author) => {
+                            if (author)
+                                authorCounts[author] =
+                                    (authorCounts[author] || 0) + 1;
+                        });
+                    }
+                });
 
-	const ctx = document.getElementById('authorsChart');
-	if (charts.authors) charts.authors.destroy();
+                const topAuthors = Object.entries(authorCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
 
-	charts.authors = new Chart(ctx, {
-		type: 'bar',
-		data: {
-			labels: topAuthors.map(a => a[0]),
-			datasets: [{
-				label: 'Number of Books',
-				data: topAuthors.map(a => a[1]),
-				backgroundColor: 'rgba(0, 255, 136, 0.6)',
-				borderColor: '#00ff88',
-				borderWidth: 2
-			}]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: true,
-			indexAxis: 'y',
-			plugins: {
-				legend: { display: false },
-				title: {
-					display: true,
-					text: 'Most Prolific Authors',
-					color: '#00ff88',
-					font: { size: 16, weight: 'bold' }
-				}
-			},
-			scales: {
-				x: {
-					ticks: { color: '#e0e0e0' },
-					grid: { color: 'rgba(0, 255, 136, 0.1)' }
-				},
-				y: {
-					ticks: { color: '#e0e0e0', font: { size: 10 } },
-					grid: { display: false }
-				}
-			}
-		}
-	});
-}
+                const ctx = document.getElementById("authorsChart");
+                if (charts.authors) charts.authors.destroy();
 
-/**
- * Create year chart (extracted from content)
- */
-function createYearChart(books) {
-	const yearCounts = {};
-	books.forEach(book => {
-		const year = extractYear(book);
-		if (!year) return;
-		yearCounts[year] = (yearCounts[year] || 0) + 1;
-	});
+                charts.authors = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: topAuthors.map((a) => a[0]),
+                        datasets: [
+                            {
+                                label: "Number of Books",
+                                data: topAuthors.map((a) => a[1]),
+                                backgroundColor: "rgba(0, 255, 136, 0.6)",
+                                borderColor: "#00ff88",
+                                borderWidth: 2,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        indexAxis: "y",
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: "Most Prolific Authors",
+                                color: "#00ff88",
+                                font: { size: 16, weight: "bold" },
+                            },
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: "#e0e0e0" },
+                                grid: { color: "rgba(0, 255, 136, 0.1)" },
+                            },
+                            y: {
+                                ticks: { color: "#e0e0e0", font: { size: 10 } },
+                                grid: { display: false },
+                            },
+                        },
+                    },
+                });
+            }
 
-	const sortedYears = Object.entries(yearCounts)
-		.sort((a, b) => a[0] - b[0]);
+            /**
+             * Create year chart (extracted from content)
+             */
+            function createYearChart(books) {
+                const yearCounts = {};
+                books.forEach((book) => {
+                    const year = extractYear(book);
+                    if (!year) return;
+                    yearCounts[year] = (yearCounts[year] || 0) + 1;
+                });
 
-	const ctx = document.getElementById('yearChart');
-	if (charts.years) charts.years.destroy();
-	if (sortedYears.length === 0) {
-		charts.years = null;
-		return;
-	}
+                const sortedYears = Object.entries(yearCounts).sort(
+                    (a, b) => a[0] - b[0],
+                );
 
-	charts.years = new Chart(ctx, {
-		type: 'line',
-		data: {
-			labels: sortedYears.map(y => y[0]),
-			datasets: [{
-				label: 'Books Published',
-				data: sortedYears.map(y => y[1]),
-				borderColor: '#00d9ff',
-				backgroundColor: 'rgba(0, 217, 255, 0.2)',
-				borderWidth: 3,
-				fill: true,
-				tension: 0.4
-			}]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: true,
-			plugins: {
-				legend: {
-					labels: { color: '#e0e0e0' }
-				},
-				title: {
-					display: true,
-					text: 'Publication Timeline',
-					color: '#00d9ff',
-					font: { size: 16, weight: 'bold' }
-				}
-			},
-			scales: {
-				x: {
-					ticks: { color: '#e0e0e0' },
-					grid: { color: 'rgba(0, 217, 255, 0.1)' }
-				},
-				y: {
-					ticks: { color: '#e0e0e0' },
-					grid: { color: 'rgba(0, 217, 255, 0.1)' }
-				}
-			}
-		}
-	});
-}
+                const ctx = document.getElementById("yearChart");
+                if (charts.years) charts.years.destroy();
+                if (sortedYears.length === 0) {
+                    charts.years = null;
+                    return;
+                }
 
-/**
- * Create real-time stats chart
- */
-function createStatsChart(books) {
-	const stats = {
-		'Total Books': books.length,
-		'With ISBN-10': books.filter(b => b.isbn_10).length,
-		'With ISBN-13': books.filter(b => b.isbn_13).length,
-		'With Thumbnails': books.filter(hasThumbnail).length,
-		'With Description': books.filter(b => b.description).length
-	};
+                charts.years = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: sortedYears.map((y) => y[0]),
+                        datasets: [
+                            {
+                                label: "Books Published",
+                                data: sortedYears.map((y) => y[1]),
+                                borderColor: "#00d9ff",
+                                backgroundColor: "rgba(0, 217, 255, 0.2)",
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                labels: { color: "#e0e0e0" },
+                            },
+                            title: {
+                                display: true,
+                                text: "Publication Timeline",
+                                color: "#00d9ff",
+                                font: { size: 16, weight: "bold" },
+                            },
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: "#e0e0e0" },
+                                grid: { color: "rgba(0, 217, 255, 0.1)" },
+                            },
+                            y: {
+                                ticks: { color: "#e0e0e0" },
+                                grid: { color: "rgba(0, 217, 255, 0.1)" },
+                            },
+                        },
+                    },
+                });
+            }
 
-	const ctx = document.getElementById('statsChart');
-	if (charts.stats) charts.stats.destroy();
+            /**
+             * Create real-time stats chart
+             */
+            function createStatsChart(books) {
+                const stats = {
+                    "Total Books": books.length,
+                    "With ISBN-10": books.filter((b) => b.isbn_10).length,
+                    "With ISBN-13": books.filter((b) => b.isbn_13).length,
+                    "With Thumbnails": books.filter(hasThumbnail).length,
+                    "With Description": books.filter((b) => b.description)
+                        .length,
+                };
 
-	charts.stats = new Chart(ctx, {
-		type: 'radar',
-		data: {
-			labels: Object.keys(stats),
-			datasets: [{
-				label: 'Statistics',
-				data: Object.values(stats),
-				backgroundColor: 'rgba(0, 255, 136, 0.2)',
-				borderColor: '#00ff88',
-				borderWidth: 3,
-				pointBackgroundColor: '#00ff88',
-				pointBorderColor: '#fff',
-				pointHoverBackgroundColor: '#fff',
-				pointHoverBorderColor: '#00ff88'
-			}]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: true,
-			plugins: {
-				legend: { display: false },
-				title: {
-					display: true,
-					text: 'Data Completeness Radar',
-					color: '#00ff88',
-					font: { size: 16, weight: 'bold' }
-				}
-			},
-			scales: {
-				r: {
-					ticks: { color: '#e0e0e0', backdropColor: 'transparent' },
-					grid: { color: 'rgba(0, 255, 136, 0.2)' },
-					pointLabels: { color: '#e0e0e0', font: { size: 11 } }
-				}
-			}
-		}
-	});
-}
+                const ctx = document.getElementById("statsChart");
+                if (charts.stats) charts.stats.destroy();
 
-/**
- * Generate chart colors
- */
-function generateEpicColors(count) {
-	const colors = [];
-	for (let i = 0; i < count; i++) {
-		const hue = (i * 360 / count) % 360;
-		colors.push(`hsla(${hue}, 70%, 60%, 0.8)`);
-	}
-	return colors;
-}
+                charts.stats = new Chart(ctx, {
+                    type: "radar",
+                    data: {
+                        labels: Object.keys(stats),
+                        datasets: [
+                            {
+                                label: "Statistics",
+                                data: Object.values(stats),
+                                backgroundColor: "rgba(0, 255, 136, 0.2)",
+                                borderColor: "#00ff88",
+                                borderWidth: 3,
+                                pointBackgroundColor: "#00ff88",
+                                pointBorderColor: "#fff",
+                                pointHoverBackgroundColor: "#fff",
+                                pointHoverBorderColor: "#00ff88",
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: "Data Completeness Radar",
+                                color: "#00ff88",
+                                font: { size: 16, weight: "bold" },
+                            },
+                        },
+                        scales: {
+                            r: {
+                                ticks: {
+                                    color: "#e0e0e0",
+                                    backdropColor: "transparent",
+                                },
+                                grid: { color: "rgba(0, 255, 136, 0.2)" },
+                                pointLabels: {
+                                    color: "#e0e0e0",
+                                    font: { size: 11 },
+                                },
+                            },
+                        },
+                    },
+                });
+            }
 
-function formatAuthors(authors) {
-	if (Array.isArray(authors)) return authors.join(', ');
-	if (typeof authors === 'string' && authors.trim()) return authors.trim();
-	return 'Unknown author';
-}
+            /**
+             * Generate chart colors
+             */
+            function generateEpicColors(count) {
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    const hue = ((i * 360) / count) % 360;
+                    colors.push(`hsla(${hue}, 70%, 60%, 0.8)`);
+                }
+                return colors;
+            }
 
-function getFallbackThumbnail(book, index = 0) {
-	const seedSource = [book.isbn_13, book.isbn_10, book.title, `book-${index}`]
-		.filter(Boolean)
-		.join('-');
-	const seed = encodeURIComponent(seedSource || `book-${index}`);
-	return `${FALLBACK_THUMBNAIL_BASE}/${seed}/280/350`;
-}
+            function formatAuthors(authors) {
+                if (Array.isArray(authors)) return authors.join(", ");
+                if (typeof authors === "string" && authors.trim())
+                    return authors.trim();
+                return "Unknown author";
+            }
 
-function getThumbnailUrl(book, fallbackUrl) {
-	const raw = [book.thumbnail, book.small_thumbnail].find(value => typeof value === 'string' && value.trim());
-	return raw ? raw.trim() : (fallbackUrl || getFallbackThumbnail(book));
-}
+            function getFallbackThumbnail(book, index = 0) {
+                const seedSource = [
+                    book.isbn_13,
+                    book.isbn_10,
+                    book.title,
+                    `book-${index}`,
+                ]
+                    .filter(Boolean)
+                    .join("-");
+                const seed = encodeURIComponent(seedSource || `book-${index}`);
+                return `${FALLBACK_THUMBNAIL_BASE}/${seed}/280/350`;
+            }
 
-function hasThumbnail(book) {
-	return [book.thumbnail, book.small_thumbnail].some(value => typeof value === 'string' && value.trim());
-}
+            function getThumbnailUrl(book, fallbackUrl) {
+                const raw = [book.thumbnail, book.small_thumbnail].find(
+                    (value) => typeof value === "string" && value.trim(),
+                );
+                return raw
+                    ? raw.trim()
+                    : fallbackUrl || getFallbackThumbnail(book);
+            }
 
-function extractYear(book) {
-	const fields = [book.description, book.title].filter(Boolean).join(' ');
-	const match = fields.match(/\b(19|20)\d{2}\b/);
-	return match ? Number(match[0]) : null;
-}
+            function hasThumbnail(book) {
+                return [book.thumbnail, book.small_thumbnail].some(
+                    (value) => typeof value === "string" && value.trim(),
+                );
+            }
 
-function clearCharts() {
-	Object.values(charts).forEach(chart => {
-		if (chart) chart.destroy();
-	});
-	charts = { publishers: null, authors: null, years: null, stats: null };
-}
+            function extractYear(book) {
+                const fields = [book.description, book.title]
+                    .filter(Boolean)
+                    .join(" ");
+                const match = fields.match(/\b(19|20)\d{2}\b/);
+                return match ? Number(match[0]) : null;
+            }
 
-function openModal(modal) {
-	modal.classList.remove('hidden');
-	document.body.classList.add('overflow-hidden');
-}
+            function clearCharts() {
+                Object.values(charts).forEach((chart) => {
+                    if (chart) chart.destroy();
+                });
+                charts = {
+                    publishers: null,
+                    authors: null,
+                    years: null,
+                    stats: null,
+                };
+            }
 
-function closeModal(modal) {
-	modal.classList.add('hidden');
-	if (document.querySelectorAll('.modal-overlay:not(.hidden)').length === 0) {
-		document.body.classList.remove('overflow-hidden');
-	}
-}
+            function openModal(modal) {
+                modal.classList.remove("hidden");
+                document.body.classList.add("overflow-hidden");
+            }
 
-function closeAllModals() {
-	document.querySelectorAll('.modal-overlay').forEach(modal => closeModal(modal));
-}
+            function closeModal(modal) {
+                modal.classList.add("hidden");
+                if (
+                    document.querySelectorAll(".modal-overlay:not(.hidden)")
+                        .length === 0
+                ) {
+                    document.body.classList.remove("overflow-hidden");
+                }
+            }
 
-function renderAuthorsModal(authors) {
-	const modal = document.getElementById('authorsModal');
-	const list = document.getElementById('authorsModalList');
-	const count = document.getElementById('authorsModalCount');
-	const names = authors.map(author => author.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
-	currentAuthors = authors;
-	selectedAuthors.clear();
-	updateAuthorsCountDisplay(names.length);
-	list.innerHTML = names.length
-		? names.map(name => `
+            function closeAllModals() {
+                document
+                    .querySelectorAll(".modal-overlay")
+                    .forEach((modal) => closeModal(modal));
+            }
+
+            function renderAuthorsModal(authors) {
+                const modal = document.getElementById("authorsModal");
+                const list = document.getElementById("authorsModalList");
+                const count = document.getElementById("authorsModalCount");
+                const names = authors
+                    .map((author) => author.name)
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b));
+                currentAuthors = authors;
+                selectedAuthors.clear();
+                updateAuthorsCountDisplay(names.length);
+                list.innerHTML = names.length
+                    ? names
+                          .map(
+                              (name) => `
 			<li>
 				<button type="button"
 					class="author-option w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-slate-100 transition hover:border-emerald-300/60 hover:bg-emerald-300/10 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
@@ -703,295 +959,328 @@ function renderAuthorsModal(authors) {
 					${name}
 				</button>
 			</li>
-		`).join('')
-		: '<li class="text-slate-300">No authors found.</li>';
+		`,
+                          )
+                          .join("")
+                    : '<li class="text-slate-300">No authors found.</li>';
 
-	list.querySelectorAll('.author-option').forEach(button => {
-		button.addEventListener('click', () => {
-			const author = decodeURIComponent(button.dataset.author || '');
-			if (!author) return;
-			toggleAuthorSelection(author, button, names.length);
-		});
-	});
+                list.querySelectorAll(".author-option").forEach((button) => {
+                    button.addEventListener("click", () => {
+                        const author = decodeURIComponent(
+                            button.dataset.author || "",
+                        );
+                        if (!author) return;
+                        toggleAuthorSelection(author, button, names.length);
+                    });
+                });
 
-	openModal(modal);
-}
+                openModal(modal);
+            }
 
-async function fetchAuthorsCount() {
-	if (currentAuthors.length > 0) return;
-	try {
-		currentAuthors = await graphqlClient.getAllAuthors();
-		if (currentBooks.length > 0) {
-			updateStats(currentBooks);
-		}
-	} catch (error) {
-		console.warn('Failed to fetch authors:', error);
-	}
-}
+            async function fetchAuthorsCount() {
+                if (currentAuthors.length > 0) return;
+                try {
+                    currentAuthors = await graphqlClient.getAllAuthors();
+                    if (currentBooks.length > 0) {
+                        updateStats(currentBooks);
+                    }
+                } catch (error) {
+                    console.warn("Failed to fetch authors:", error);
+                }
+            }
 
-function updateAuthorsCountDisplay(total) {
-	const count = document.getElementById('authorsModalCount');
-	const selected = selectedAuthors.size;
-	count.textContent = selected > 0
-		? `${total} authors • ${selected} selected`
-		: `${total} authors`;
-}
+            function updateAuthorsCountDisplay(total) {
+                const count = document.getElementById("authorsModalCount");
+                const selected = selectedAuthors.size;
+                count.textContent =
+                    selected > 0
+                        ? `${total} authors • ${selected} selected`
+                        : `${total} authors`;
+            }
 
-function toggleAuthorSelection(author, button, total) {
-	if (selectedAuthors.has(author)) {
-		selectedAuthors.delete(author);
-		setAuthorSelected(button, false);
-	} else {
-		selectedAuthors.add(author);
-		setAuthorSelected(button, true);
-	}
+            function toggleAuthorSelection(author, button, total) {
+                if (selectedAuthors.has(author)) {
+                    selectedAuthors.delete(author);
+                    setAuthorSelected(button, false);
+                } else {
+                    selectedAuthors.add(author);
+                    setAuthorSelected(button, true);
+                }
 
-	anime({
-		targets: button,
-		scale: [1, 1.03, 1],
-		duration: 260,
-		easing: 'easeOutQuad'
-	});
+                anime({
+                    targets: button,
+                    scale: [1, 1.03, 1],
+                    duration: 260,
+                    easing: "easeOutQuad",
+                });
 
-	updateAuthorsCountDisplay(total);
-	if (selectedAuthors.size > 0) {
-		searchBySelectedAuthors();
-	}
-}
+                updateAuthorsCountDisplay(total);
+                if (selectedAuthors.size > 0) {
+                    searchBySelectedAuthors();
+                }
+            }
 
-function setAuthorSelected(button, isSelected) {
-	button.classList.toggle('border-emerald-300/70', isSelected);
-	button.classList.toggle('bg-emerald-300/20', isSelected);
-	button.classList.toggle('text-emerald-50', isSelected);
-	button.classList.toggle('shadow-[0_0_0_1px_rgba(16,185,129,0.35)]', isSelected);
-}
+            function setAuthorSelected(button, isSelected) {
+                button.classList.toggle("border-emerald-300/70", isSelected);
+                button.classList.toggle("bg-emerald-300/20", isSelected);
+                button.classList.toggle("text-emerald-50", isSelected);
+                button.classList.toggle(
+                    "shadow-[0_0_0_1px_rgba(16,185,129,0.35)]",
+                    isSelected,
+                );
+            }
 
-function getBookKey(book) {
-	return book.isbn_13 || book.isbn_10 || `${book.title || 'unknown'}-${book.publisher || 'unknown'}`;
-}
+            function getBookKey(book) {
+                return (
+                    book.isbn_13 ||
+                    book.isbn_10 ||
+                    `${book.title || "unknown"}-${book.publisher || "unknown"}`
+                );
+            }
 
-function mergeBooks(books) {
-	const unique = new Map();
-	books.forEach(book => {
-		const key = getBookKey(book);
-		if (!unique.has(key)) unique.set(key, book);
-	});
-	return Array.from(unique.values());
-}
+            function mergeBooks(books) {
+                const unique = new Map();
+                books.forEach((book) => {
+                    const key = getBookKey(book);
+                    if (!unique.has(key)) unique.set(key, book);
+                });
+                return Array.from(unique.values());
+            }
 
-async function searchBySelectedAuthors() {
-	const authors = Array.from(selectedAuthors);
-	if (authors.length === 0) return;
+            async function searchBySelectedAuthors() {
+                const authors = Array.from(selectedAuthors);
+                if (authors.length === 0) return;
 
-	const token = ++authorSearchToken;
-	showLoading();
+                const token = ++authorSearchToken;
+                showLoading();
 
-	try {
-		const results = await Promise.allSettled(
-			authors.map(author => graphqlClient.searchBooksByAuthor(author))
-		);
+                try {
+                    const results = await Promise.allSettled(
+                        authors.map((author) =>
+                            graphqlClient.searchBooksByAuthor(author),
+                        ),
+                    );
 
-		if (token !== authorSearchToken) return;
+                    if (token !== authorSearchToken) return;
 
-		const books = [];
-		const failedAuthors = [];
+                    const books = [];
+                    const failedAuthors = [];
 
-		results.forEach((result, index) => {
-			if (result.status === 'fulfilled') {
-				books.push(...result.value);
-			} else {
-				failedAuthors.push(authors[index]);
-			}
-		});
+                    results.forEach((result, index) => {
+                        if (result.status === "fulfilled") {
+                            books.push(...result.value);
+                        } else {
+                            failedAuthors.push(authors[index]);
+                        }
+                    });
 
-		const merged = mergeBooks(books);
-		displayBooks(merged);
-		updateCharts(merged);
-		updateStats(merged);
-		animateSuccess();
+                    const merged = mergeBooks(books);
+                    displayBooks(merged);
+                    updateCharts(merged);
+                    updateStats(merged);
+                    animateSuccess();
 
-		if (merged.length === 0 && failedAuthors.length > 0) {
-			showError(`Failed to load books for: ${failedAuthors.join(', ')}`);
-		}
-	} catch (error) {
-		showError('Failed to load selected authors: ' + error.message);
-	}
-}
+                    if (merged.length === 0 && failedAuthors.length > 0) {
+                        showError(
+                            `Failed to load books for: ${failedAuthors.join(", ")}`,
+                        );
+                    }
+                } catch (error) {
+                    showError(
+                        "Failed to load selected authors: " + error.message,
+                    );
+                }
+            }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// UI FUNCTIONS
-// ═══════════════════════════════════════════════════════════════════════════
+            // ═══════════════════════════════════════════════════════════════════════════
+            // UI FUNCTIONS
+            // ═══════════════════════════════════════════════════════════════════════════
 
-/**
- * Load all books
- */
-async function loadAllBooks() {
-	showLoading();
-	try {
-		const books = await graphqlClient.getAllBooks();
-		displayBooks(books);
-		updateCharts(books);
-		updateStats(books);
-		animateSuccess();
-	} catch (error) {
-		showError('Failed to load books: ' + error.message);
-	}
-}
+            /**
+             * Load all books
+             */
+            async function loadAllBooks() {
+                showLoading();
+                try {
+                    const books = await graphqlClient.getAllBooks();
+                    displayBooks(books);
+                    updateCharts(books);
+                    updateStats(books);
+                    animateSuccess();
+                } catch (error) {
+                    showError("Failed to load books: " + error.message);
+                }
+            }
 
-/**
- * Search by name
- */
-async function searchByName() {
-	const name = document.getElementById('searchName').value.trim();
-	if (!name) {
-		alert('Please enter a book title.');
-		return;
-	}
+            /**
+             * Search by name
+             */
+            async function searchByName() {
+                const name = document.getElementById("searchName").value.trim();
+                if (!name) {
+                    alert("Please enter a book title.");
+                    return;
+                }
 
-	showLoading();
-	try {
-		const books = await graphqlClient.searchBooksByName(name);
-		displayBooks(books);
-		updateCharts(books);
-		updateStats(books);
-		animateSuccess();
-	} catch (error) {
-		showError('Failed to search books: ' + error.message);
-	}
-}
+                showLoading();
+                try {
+                    const books = await graphqlClient.searchBooksByName(name);
+                    displayBooks(books);
+                    updateCharts(books);
+                    updateStats(books);
+                    animateSuccess();
+                } catch (error) {
+                    showError("Failed to search books: " + error.message);
+                }
+            }
 
-/**
- * Search by author
- */
-async function searchByAuthor() {
-	const author = document.getElementById('searchAuthor').value.trim();
-	if (!author) {
-		alert('Please enter an author name.');
-		return;
-	}
+            /**
+             * Search by author
+             */
+            async function searchByAuthor() {
+                const author = document
+                    .getElementById("searchAuthor")
+                    .value.trim();
+                if (!author) {
+                    alert("Please enter an author name.");
+                    return;
+                }
 
-	showLoading();
-	try {
-		const books = await graphqlClient.searchBooksByAuthor(author);
-		displayBooks(books);
-		updateCharts(books);
-		updateStats(books);
-		animateSuccess();
-	} catch (error) {
-		showError('Failed to search by author: ' + error.message);
-	}
-}
+                showLoading();
+                try {
+                    const books =
+                        await graphqlClient.searchBooksByAuthor(author);
+                    displayBooks(books);
+                    updateCharts(books);
+                    updateStats(books);
+                    animateSuccess();
+                } catch (error) {
+                    showError("Failed to search by author: " + error.message);
+                }
+            }
 
-/**
- * Load all authors
- */
-async function loadAuthors() {
-	try {
-		if (currentAuthors.length === 0) {
-			currentAuthors = await graphqlClient.getAllAuthors();
-		}
-		renderAuthorsModal(currentAuthors);
-		updateStats(currentBooks);
-	} catch (error) {
-		showError('Failed to load authors: ' + error.message);
-	}
-}
+            /**
+             * Load all authors
+             */
+            async function loadAuthors() {
+                try {
+                    if (currentAuthors.length === 0) {
+                        currentAuthors = await graphqlClient.getAllAuthors();
+                    }
+                    renderAuthorsModal(currentAuthors);
+                    updateStats(currentBooks);
+                } catch (error) {
+                    showError("Failed to load authors: " + error.message);
+                }
+            }
 
-/**
- * Render books grid
- */
-function displayBooks(books) {
-	const container = document.getElementById('booksContainer');
-	currentBooks = books;
+            /**
+             * Render books grid
+             */
+            function displayBooks(books) {
+                const container = document.getElementById("booksContainer");
+                currentBooks = books;
 
-	if (books.length === 0) {
-		container.innerHTML = '<div class="loading">No books found.</div>';
-		return;
-	}
+                if (books.length === 0) {
+                    container.innerHTML =
+                        '<div class="loading">No books found.</div>';
+                    return;
+                }
 
-	container.innerHTML = books.map((book, index) => {
-		const fallback = getFallbackThumbnail(book, index);
-		return `
+                container.innerHTML = books
+                    .map((book, index) => {
+                        const fallback = getFallbackThumbnail(book, index);
+                        return `
         <div class="book-card group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_15px_40px_rgba(0,0,0,0.25)] transition hover:-translate-y-2 hover:border-emerald-300/50 hover:shadow-[0_20px_50px_rgba(16,185,129,0.25)]" data-index="${index}">
             <img class="book-thumbnail h-72 w-full object-cover"
                  src="${getThumbnailUrl(book, fallback)}"
-                 alt="${book.title || 'Untitled book'}"
+                 alt="${book.title || "Untitled book"}"
                  onerror="this.onerror=null;this.src='${fallback}'">
             <div class="book-info p-4">
-                <div class="book-title font-display text-lg text-emerald-200">${book.title || 'Unknown title'}</div>
+                <div class="book-title font-display text-lg text-emerald-200">${book.title || "Unknown title"}</div>
                 <div class="book-author text-slate-200/90">By ${formatAuthors(book.authors)}</div>
-                <div class="book-publisher text-sm text-slate-300/80">Publisher: ${book.publisher || 'Unknown publisher'}</div>
+                <div class="book-publisher text-sm text-slate-300/80">Publisher: ${book.publisher || "Unknown publisher"}</div>
             </div>
         </div>
     `;
-	}).join('');
+                    })
+                    .join("");
 
-	container.querySelectorAll('.book-card').forEach(card => {
-		card.addEventListener('click', () => {
-			const book = currentBooks[Number(card.dataset.index)];
-			if (book) showBookDetails(book);
-		});
-	});
+                container.querySelectorAll(".book-card").forEach((card) => {
+                    card.addEventListener("click", () => {
+                        const book = currentBooks[Number(card.dataset.index)];
+                        if (book) showBookDetails(book);
+                    });
+                });
 
-	// Animate card entrance
-	anime({
-		targets: '.book-card',
-		opacity: [0, 1],
-		translateY: [50, 0],
-		delay: anime.stagger(50),
-		duration: 800,
-		easing: 'easeOutExpo'
-	});
-}
+                // Animate card entrance
+                anime({
+                    targets: ".book-card",
+                    opacity: [0, 1],
+                    translateY: [50, 0],
+                    delay: anime.stagger(50),
+                    duration: 800,
+                    easing: "easeOutExpo",
+                });
+            }
 
-/**
- * Show book details
- */
-function showBookDetails(book) {
-	const modal = document.getElementById('bookModal');
-	document.getElementById('bookModalTitle').textContent = book.title || 'Unknown title';
-	document.getElementById('bookModalAuthors').textContent = formatAuthors(book.authors);
-	document.getElementById('bookModalPublisher').textContent = book.publisher || 'Unknown publisher';
-	document.getElementById('bookModalIsbn10').textContent = book.isbn_10 || 'N/A';
-	document.getElementById('bookModalIsbn13').textContent = book.isbn_13 || 'N/A';
-	document.getElementById('bookModalDescription').textContent = book.description || 'No description available.';
-	const image = document.getElementById('bookModalImage');
-	const index = currentBooks.indexOf(book);
-	const fallback = getFallbackThumbnail(book, index >= 0 ? index : 0);
-	image.src = getThumbnailUrl(book, fallback);
-	image.onerror = () => {
-		image.onerror = null;
-		image.src = fallback;
-	};
-	openModal(modal);
-}
+            /**
+             * Show book details
+             */
+            function showBookDetails(book) {
+                const modal = document.getElementById("bookModal");
+                document.getElementById("bookModalTitle").textContent =
+                    book.title || "Unknown title";
+                document.getElementById("bookModalAuthors").textContent =
+                    formatAuthors(book.authors);
+                document.getElementById("bookModalPublisher").textContent =
+                    book.publisher || "Unknown publisher";
+                document.getElementById("bookModalIsbn10").textContent =
+                    book.isbn_10 || "N/A";
+                document.getElementById("bookModalIsbn13").textContent =
+                    book.isbn_13 || "N/A";
+                document.getElementById("bookModalDescription").textContent =
+                    book.description || "No description available.";
+                const image = document.getElementById("bookModalImage");
+                const index = currentBooks.indexOf(book);
+                const fallback = getFallbackThumbnail(
+                    book,
+                    index >= 0 ? index : 0,
+                );
+                image.src = getThumbnailUrl(book, fallback);
+                image.onerror = () => {
+                    image.onerror = null;
+                    image.src = fallback;
+                };
+                openModal(modal);
+            }
 
-/**
- * Update all charts
- */
-function updateCharts(books) {
-	if (books.length === 0) {
-		clearCharts();
-		return;
-	}
-	createPublishersChart(books);
-	createAuthorsChart(books);
-	createYearChart(books);
-	createStatsChart(books);
-}
+            /**
+             * Update all charts
+             */
+            function updateCharts(books) {
+                if (books.length === 0) {
+                    clearCharts();
+                    return;
+                }
+                createPublishersChart(books);
+                createAuthorsChart(books);
+                createYearChart(books);
+                createStatsChart(books);
+            }
 
-/**
- * Update stats
- */
-function updateStats(books) {
-	const uniquePublishers = new Set();
+            /**
+             * Update stats
+             */
+            function updateStats(books) {
+                const uniquePublishers = new Set();
 
-	books.forEach(book => {
-		if (book.publisher) uniquePublishers.add(book.publisher);
-	});
-	const authorsCount = currentAuthors.length;
+                books.forEach((book) => {
+                    if (book.publisher) uniquePublishers.add(book.publisher);
+                });
+                const authorsCount = currentAuthors.length;
 
-	const statsHTML = `
+                const statsHTML = `
         <div class="stat-card rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-5 text-center">
             <div class="stat-number font-display text-3xl text-emerald-200">${books.length}</div>
             <div class="stat-label text-sm text-slate-200/80">Total books</div>
@@ -1010,152 +1299,161 @@ function updateStats(books) {
         </div>
     `;
 
-	document.getElementById('statsBar').innerHTML = statsHTML;
+                document.getElementById("statsBar").innerHTML = statsHTML;
 
-	// Animate the numbers
-	anime({
-		targets: '.stat-number',
-		innerHTML: [0, (el) => el.textContent],
-		round: 1,
-		duration: 2000,
-		easing: 'easeOutExpo'
-	});
-}
+                // Animate the numbers
+                anime({
+                    targets: ".stat-number",
+                    innerHTML: [0, (el) => el.textContent],
+                    round: 1,
+                    duration: 2000,
+                    easing: "easeOutExpo",
+                });
+            }
 
-/**
- * Show loading
- */
-function showLoading() {
-	document.getElementById('booksContainer').innerHTML = `
+            /**
+             * Show loading
+             */
+            function showLoading() {
+                document.getElementById("booksContainer").innerHTML = `
         <div class="loading">
             <div class="spinner"></div>
             <div>Loading data from GraphQL...</div>
         </div>
     `;
-}
+            }
 
-/**
- * Hide loading
- */
-function hideLoading() {
-	// Handled by displayBooks
-}
+            /**
+             * Hide loading
+             */
+            function hideLoading() {
+                // Handled by displayBooks
+            }
 
-/**
- * Show error
- */
-function showError(message) {
-	document.getElementById('booksContainer').innerHTML = `
+            /**
+             * Show error
+             */
+            function showError(message) {
+                document.getElementById("booksContainer").innerHTML = `
         <div class="error-message">
             <h3>Error</h3>
             <p>${message}</p>
             <p>Make sure the GraphQL server is running at: ${GRAPHQL_CONFIG.BASE_URL}</p>
         </div>
     `;
-}
+            }
 
-/**
- * Success animation
- */
-function animateSuccess() {
-	anime({
-		targets: '.chart-container',
-		scale: [0.9, 1],
-		opacity: [0, 1],
-		delay: anime.stagger(100),
-		duration: 600,
-		easing: 'easeOutElastic(1, .8)'
-	});
-}
+            /**
+             * Success animation
+             */
+            function animateSuccess() {
+                anime({
+                    targets: ".chart-container",
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    delay: anime.stagger(100),
+                    duration: 600,
+                    easing: "easeOutElastic(1, .8)",
+                });
+            }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EFFECT INITIALIZATION
-// ═══════════════════════════════════════════════════════════════════════════
+            // ═══════════════════════════════════════════════════════════════════════════
+            // EFFECT INITIALIZATION
+            // ═══════════════════════════════════════════════════════════════════════════
 
-/**
- * Initialize particles.js
- */
-function initParticles() {
-	particlesJS('particles-js', {
-		particles: {
-			number: { value: 80, density: { enable: true, value_area: 800 } },
-			color: { value: '#00ff88' },
-			shape: { type: 'circle' },
-			opacity: { value: 0.5, random: true },
-			size: { value: 3, random: true },
-			line_linked: {
-				enable: true,
-				distance: 150,
-				color: '#00ff88',
-				opacity: 0.4,
-				width: 1
-			},
-			move: {
-				enable: true,
-				speed: 2,
-				direction: 'none',
-				random: false,
-				straight: false,
-				out_mode: 'out',
-				bounce: false
-			}
-		},
-		interactivity: {
-			detect_on: 'canvas',
-			events: {
-				onhover: { enable: true, mode: 'repulse' },
-				onclick: { enable: true, mode: 'push' },
-				resize: true
-			}
-		},
-		retina_detect: true
-	});
-}
+            /**
+             * Initialize particles.js
+             */
+            function initParticles() {
+                particlesJS("particles-js", {
+                    particles: {
+                        number: {
+                            value: 80,
+                            density: { enable: true, value_area: 800 },
+                        },
+                        color: { value: "#00ff88" },
+                        shape: { type: "circle" },
+                        opacity: { value: 0.5, random: true },
+                        size: { value: 3, random: true },
+                        line_linked: {
+                            enable: true,
+                            distance: 150,
+                            color: "#00ff88",
+                            opacity: 0.4,
+                            width: 1,
+                        },
+                        move: {
+                            enable: true,
+                            speed: 2,
+                            direction: "none",
+                            random: false,
+                            straight: false,
+                            out_mode: "out",
+                            bounce: false,
+                        },
+                    },
+                    interactivity: {
+                        detect_on: "canvas",
+                        events: {
+                            onhover: { enable: true, mode: "repulse" },
+                            onclick: { enable: true, mode: "push" },
+                            resize: true,
+                        },
+                    },
+                    retina_detect: true,
+                });
+            }
 
-/**
- * Initialize when the page loads
- */
-window.addEventListener('DOMContentLoaded', () => {
-	console.log('Book analytics starting...');
-	console.log('GraphQL endpoint:', GRAPHQL_CONFIG.BASE_URL);
+            /**
+             * Initialize when the page loads
+             */
+            window.addEventListener("DOMContentLoaded", () => {
+                console.log("Book analytics starting...");
+                console.log("GraphQL endpoint:", GRAPHQL_CONFIG.BASE_URL);
 
-	initParticles();
+                initParticles();
 
-	// Load initial data
-	loadAllBooks();
-	fetchAuthorsCount();
+                // Load initial data
+                loadAllBooks();
+                fetchAuthorsCount();
 
-	// Add event listeners for Enter on inputs
-	document.getElementById('searchName').addEventListener('keypress', (e) => {
-		if (e.key === 'Enter') searchByName();
-	});
+                // Add event listeners for Enter on inputs
+                document
+                    .getElementById("searchName")
+                    .addEventListener("keypress", (e) => {
+                        if (e.key === "Enter") searchByName();
+                    });
 
-	document.getElementById('searchAuthor').addEventListener('keypress', (e) => {
-		if (e.key === 'Enter') searchByAuthor();
-	});
+                document
+                    .getElementById("searchAuthor")
+                    .addEventListener("keypress", (e) => {
+                        if (e.key === "Enter") searchByAuthor();
+                    });
 
-	document.querySelectorAll('[data-modal-close]').forEach(button => {
-		button.addEventListener('click', () => closeAllModals());
-	});
+                document
+                    .querySelectorAll("[data-modal-close]")
+                    .forEach((button) => {
+                        button.addEventListener("click", () =>
+                            closeAllModals(),
+                        );
+                    });
 
-	document.querySelectorAll('.modal-overlay').forEach(modal => {
-		modal.addEventListener('click', (event) => {
-			if (event.target === modal) closeModal(modal);
-		});
-	});
+                document.querySelectorAll(".modal-overlay").forEach((modal) => {
+                    modal.addEventListener("click", (event) => {
+                        if (event.target === modal) closeModal(modal);
+                    });
+                });
 
-	document.addEventListener('keydown', (event) => {
-		if (event.key === 'Escape') closeAllModals();
-	});
+                document.addEventListener("keydown", (event) => {
+                    if (event.key === "Escape") closeAllModals();
+                });
 
-	console.log('Book analytics ready.');
-});
+                console.log("Book analytics ready.");
+            });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// END OF FILE
-// ═══════════════════════════════════════════════════════════════════════════
-
-</script>
-</body>
-
+            // ═══════════════════════════════════════════════════════════════════════════
+            // END OF FILE
+            // ═══════════════════════════════════════════════════════════════════════════
+        </script>
+    </body>
 </html>
