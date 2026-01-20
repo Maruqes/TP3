@@ -78,7 +78,6 @@ func main() {
         memcpy(resp + off, BODY, body_len); off += body_len;
 
         sys_write(c, resp, off);
-        sys_close(c);
         print("Client disconnected\n");
     }
 
