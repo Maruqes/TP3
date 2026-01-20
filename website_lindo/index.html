@@ -640,11 +640,24 @@ function formatAuthors(authors) {
 	return 'Unknown author';
 }
 
+function hashString(input) {
+	let hash = 5381;
+	for (let i = 0; i < input.length; i++) {
+		hash = ((hash << 5) + hash) + input.charCodeAt(i);
+	}
+	return (hash >>> 0).toString(36);
+}
+
 function getFallbackThumbnail(book, index = 0) {
 	const seedSource = [book.isbn_13, book.isbn_10, book.title, `book-${index}`]
 		.filter(Boolean)
 		.join('-');
-	const seed = encodeURIComponent(seedSource || `book-${index}`);
+	const base = String(seedSource || `book-${index}`).trim();
+	const slug = base.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+	const seed = (slug ? `${slug}-${hashString(base)}` : `book-${index}-${hashString(base)}`)
+		.slice(0, 80);
 	return `${FALLBACK_THUMBNAIL_BASE}/${seed}/280/350`;
 }
 
