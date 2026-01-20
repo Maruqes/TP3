@@ -25,8 +25,8 @@ SELECT
   b.authors,
   b.publisher,
   b.language,
-  COALESCE((xpath('string(ISBN/isbn_10)', b.book_xml))[1]::text, '') AS isbn_10,
-  COALESCE((xpath('string(ISBN/isbn_13)', b.book_xml))[1]::text, '') AS isbn_13,
+  COALESCE(b.isbn_10, '') AS isbn_10,
+  COALESCE(b.isbn_13, '') AS isbn_13,
   b.description,
   b.small_thumbnail,
   b.thumbnail
@@ -40,6 +40,8 @@ CROSS JOIN LATERAL XMLTABLE(
     authors text PATH 'authors',
     publisher text PATH 'publisher',
     language text PATH 'language',
+    isbn_10 text PATH 'ISBN/isbn_10',
+    isbn_13 text PATH 'ISBN/isbn_13',
     description text PATH 'description',
     small_thumbnail text PATH 'thumbnails/smallThumbnail',
     thumbnail text PATH 'thumbnails/thumbnail'
@@ -97,8 +99,8 @@ def parse_book_xml(book_xml, context):
     publisher = (root.findtext("publisher") or "").strip()
     language = (root.findtext("language") or "").strip()
     description = (root.findtext("description") or "").strip()
-    isbn_10 = (root.findtext("ISBN/isbn_10") or "").strip()
-    isbn_13 = (root.findtext("ISBN/isbn_13") or "").strip()
+    isbn_10 = (root.findtext("ISBN/isbn_10") or root.findtext("isbn_10") or "").strip()
+    isbn_13 = (root.findtext("ISBN/isbn_13") or root.findtext("isbn_13") or "").strip()
     small_thumbnail = (root.findtext("thumbnails/smallThumbnail") or "").strip()
     thumbnail = (root.findtext("thumbnails/thumbnail") or "").strip()
     return messages_pb2.Book(
