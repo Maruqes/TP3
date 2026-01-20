@@ -68,11 +68,11 @@ defmodule BiService.Router do
     init_opts: [schema: BiService.Logic]
   )
 
-  # # test queries, remove for prod
-  # forward("/graphiql",
-  #   to: Absinthe.Plug.GraphiQL,
-  #   init_opts: [schema: BiService.Logic, interface: :simple]
-  # )
+  # test queries, remove for prod
+  forward("/graphiql",
+    to: Absinthe.Plug.GraphiQL,
+    init_opts: [schema: BiService.Logic, interface: :simple]
+  )
 
   options _ do
     send_resp(conn, 204, "")
